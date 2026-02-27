@@ -93,6 +93,10 @@ app.post('/api/request-entry', (req, res) => {
         return res.status(400).json({error: 'Fuera de horario de juego'});
     }
     
+    if (gameState.status !== 'OPEN') {
+        return res.status(400).json({error: 'La sala está cerrada'});
+    }
+    
     if (gameState.players.length >= gameState.config.maxPlayers) {
         return res.status(400).json({error: 'Sala completa'});
     }
@@ -240,6 +244,13 @@ app.post('/api/force-start', (req, res) => {
 });
 
 app.post('/api/reset', (req, res) => {
+    resetRound(true);
+    res.json({success: true});
+});
+
+function resetRound(clearJackpot = false) {
+    const jackpotToKeep = clearJackpot ? 0 : gameState.jackpot;
+    
     gameState.status = 'OPEN';
     gameState.players = [];
     gameState.boxes = {};
@@ -249,11 +260,11 @@ app.post('/api/reset', (req, res) => {
     gameState.winner = null;
     gameState.winningBox = null;
     gameState.pendingTransfers = [];
+    gameState.jackpot = jackpotToKeep;
     
     if (timers.countdown) clearInterval(timers.countdown);
-    
-    res.json({success: true});
-});
+    if (timers.autoReset) clearTimeout(timers.autoReset);
+}
 
 function checkAllSelected() {
     const approvedPlayers = gameState.players.filter(p => p.approved);
@@ -290,6 +301,7 @@ function closeRound() {
         gameState.winningBox = Math.floor(Math.random() * gameState.config.totalBoxes) + 1;
         gameState.winner = null;
         gameState.status = 'FINISHED';
+        scheduleAutoReset();
         return;
     }
     
@@ -316,6 +328,14 @@ function drawWinner() {
     }
     
     gameState.status = 'FINISHED';
+    scheduleAutoReset();
+}
+
+function scheduleAutoReset() {
+    // Espera 10 segundos para que los jugadores vean el resultado, luego resetea
+    timers.autoReset = setTimeout(() => {
+        resetRound(false); // false = mantener el jackpot acumulado
+    }, 10000);
 }
 
 function calculatePrize() {

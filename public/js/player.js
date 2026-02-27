@@ -41,6 +41,8 @@ async function fetchGameState() {
     try {
         const response = await fetch(`${API_URL}/state`);
         const data = await response.json();
+
+        const prevStatus = gameState.status;
         
         gameState.status = data.status;
         gameState.players = data.players;
@@ -67,12 +69,19 @@ async function fetchGameState() {
         // Mostrar resultado UNA sola vez por ronda
         if (gameState.status === 'FINISHED' && !gameState.resultShown) {
             gameState.resultShown = true;
-            showResult(data.winner, data.winningBox, data.prize);
+            showResult(data.winner, data.winningBox, data.prize, data.jackpot);
         }
 
-        // Resetear flag cuando empieza nueva ronda
-        if (gameState.status === 'OPEN') {
+        // El servidor reseteó automáticamente — limpiar estado del jugador
+        if (prevStatus === 'FINISHED' && gameState.status === 'OPEN') {
             gameState.resultShown = false;
+            // Si el jugador tenía estado, lo limpiamos para que pueda volver a jugar
+            if (gameState.currentPlayer) {
+                gameState.currentPlayer = null;
+                gameState.selectedBox = null;
+                document.getElementById('confirmBtn').classList.add('hidden');
+                document.getElementById('extraBtn').classList.add('hidden');
+            }
         }
         
         // Si el jugador actual fue aprobado, actualizar UI
@@ -102,7 +111,6 @@ function renderBoxes() {
             <div class="box-icon">🎁</div>
         `;
         
-        // Caja tomada por alguien
         if (gameState.boxes[i]) {
             box.classList.add('taken');
             const player = gameState.players.find(p => p.id === gameState.boxes[i]);
@@ -117,23 +125,19 @@ function renderBoxes() {
             }
         }
         
-        // Caja seleccionada por mí (pendiente de aprobación)
         if (gameState.currentPlayer && gameState.currentPlayer.selectedBox === i && !gameState.currentPlayer.approved) {
             box.classList.add('pending');
             box.innerHTML += `<div class="player-tag">⏳ ${gameState.currentPlayer.name}</div>`;
         }
         
-        // Caja confirmada por mí
         if (gameState.currentPlayer && gameState.currentPlayer.box === i) {
             box.classList.add('selected');
         }
         
-        // Caja extra mía
         if (gameState.currentPlayer && gameState.currentPlayer.extraBox === i) {
             box.classList.add('extra-selected');
         }
         
-        // Ganadora
         if (gameState.winningBox === i) {
             if (gameState.winner) {
                 box.classList.add('winner');
@@ -198,7 +202,7 @@ function updateStatus(status) {
 
 function selectBox(boxNumber) {
     if (gameState.status === 'FINISHED') {
-        showNotification('La ronda terminó. Esperá una nueva.', 'warning');
+        showNotification('La ronda terminó. Esperá un momento...', 'warning');
         return;
     }
     
@@ -285,7 +289,6 @@ async function submitTransfer() {
         if (response.ok) {
             const data = await response.json();
             gameState.currentPlayer = data.player;
-            
             closePaymentModal();
             showNotification('Solicitud enviada. Esperando aprobación...', 'info');
             renderBoxes();
@@ -388,7 +391,6 @@ async function submitExtraBox() {
 }
 
 function playAgain() {
-    localStorage.removeItem('currentPlayer');
     gameState.currentPlayer = null;
     gameState.selectedBox = null;
     gameState.resultShown = false;
@@ -397,34 +399,59 @@ function playAgain() {
     document.getElementById('playAgainBtn').classList.add('hidden');
     document.getElementById('extraBtn').classList.add('hidden');
     document.getElementById('confirmBtn').classList.add('hidden');
-    
-    location.reload();
 }
 
-function showResult(winner, winningBox, prize) {
+function showResult(winner, winningBox, prize, jackpot) {
     const screen = document.getElementById('resultScreen');
     const title = document.getElementById('resultTitle');
     const content = document.getElementById('resultContent');
+    const playAgainBtn = document.getElementById('playAgainBtn');
     
     screen.classList.add('active');
-    document.getElementById('playAgainBtn').classList.remove('hidden');
-    
+    playAgainBtn.classList.remove('hidden');
+
+    const myPlayer = gameState.currentPlayer;
+    const iWon = myPlayer && winner && winner.id === myPlayer.id;
+
     if (winner) {
-        title.textContent = '🎉 ¡Tenemos un Ganador!';
-        content.innerHTML = `
-            <div class="winner-name">${winner.name}</div>
-            <div class="prize-amount">$${prize.toLocaleString()}</div>
-            <p>¡Se lleva el pozo acumulado!</p>
-        `;
+        if (iWon) {
+            // Yo gané
+            title.innerHTML = `<div class="result-title-win">🏆 ¡GANASTE!</div>`;
+            content.innerHTML = `
+                <div class="prize-amount">$${prize ? prize.toLocaleString() : 0}</div>
+                <p style="opacity:0.9; margin-bottom: 20px;">¡El pozo es tuyo! Pronto te contactamos.</p>
+            `;
+            playAgainBtn.textContent = '🔥 ¡Estás en racha! — Entrar a la siguiente ronda';
+            playAgainBtn.className = 'btn btn-win-again';
+            content.innerHTML += `<p class="result-subtitle">La próxima ronda ya está abierta.</p>`;
+        } else {
+            // Alguien más ganó
+            title.innerHTML = `<div class="result-title-lose">😬 Estuviste muy cerca</div>`;
+            content.innerHTML = `
+                <div class="result-winner-other">🏆 Ganó: <strong>${winner.name}</strong></div>
+                <p style="opacity:0.8; margin: 10px 0;">Tu próxima oportunidad comienza ahora.</p>
+            `;
+            const nextJackpot = jackpot || 0;
+            playAgainBtn.textContent = nextJackpot > 0
+                ? `🎯 Entrar a la siguiente ronda — Pozo: $${nextJackpot.toLocaleString()}`
+                : '🎯 Entrar a la siguiente ronda';
+            playAgainBtn.className = 'btn btn-try-again';
+        }
         createConfetti();
     } else {
-        title.textContent = '😔 Sin Ganador';
+        // Sin ganador
+        title.innerHTML = `<div class="result-title-lose">😬 Estuviste muy cerca</div>`;
+        const nextJackpot = jackpot || 0;
         content.innerHTML = `
-            <div class="no-winner">Nadie eligió la caja ganadora</div>
             <div class="accumulated-message">
-                💰 El pozo se acumula para la próxima ronda
+                💰 Pozo acumulado: $${nextJackpot.toLocaleString()}
             </div>
+            <p style="opacity:0.9; margin-top: 15px;">Tu próxima oportunidad comienza ahora.</p>
         `;
+        playAgainBtn.textContent = nextJackpot > 0
+            ? `🎯 Entrar a la siguiente ronda — Pozo: $${nextJackpot.toLocaleString()}`
+            : '🎯 Entrar a la siguiente ronda';
+        playAgainBtn.className = 'btn btn-try-again';
     }
 }
 
