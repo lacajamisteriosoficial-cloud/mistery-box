@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800;900&display=swap');
+
 :root {
     --primary: #6366f1;
     --secondary: #ec4899;
@@ -6,55 +8,114 @@
     --danger: #ef4444;
     --dark: #1f2937;
     --light: #f3f4f6;
+    --gold: #fbbf24;
+    --glow-purple: rgba(99, 102, 241, 0.6);
+    --glow-gold: rgba(251, 191, 36, 0.7);
+    --glow-green: rgba(16, 185, 129, 0.6);
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Exo 2', 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
     min-height: 100vh;
     color: white;
+    overflow-x: hidden;
+}
+
+/* ── Canvas partículas ── */
+#particlesCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    position: relative;
+    z-index: 1;
 }
 
+/* ── Header ── */
 .header {
     text-align: center;
     margin-bottom: 30px;
     animation: fadeInDown 0.8s ease;
 }
 
-.header h1 {
-    font-size: 3em;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    margin-bottom: 10px;
+.main-title {
+    font-size: 3.2em;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 0%, #c4b5fd 40%, #fbbf24 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 0 20px rgba(196, 181, 253, 0.5));
+    margin-bottom: 15px;
+    letter-spacing: 2px;
 }
 
+.header-sub {
+    margin-top: 10px;
+    opacity: 0.9;
+    font-size: 1.1em;
+    letter-spacing: 1px;
+}
+
+/* ── Jackpot display SÚPER llamativo ── */
 .jackpot-display {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    position: relative;
+    background: linear-gradient(135deg, #92400e 0%, #b45309 30%, #fbbf24 60%, #f59e0b 100%);
     color: #1f2937;
-    padding: 20px 40px;
-    border-radius: 20px;
-    display: inline-block;
-    font-size: 2em;
-    font-weight: bold;
-    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
-    margin: 10px 0;
-    animation: pulse 2s infinite;
+    padding: 20px 50px;
+    border-radius: 25px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 900;
+    box-shadow:
+        0 0 40px rgba(251, 191, 36, 0.8),
+        0 0 80px rgba(251, 191, 36, 0.4),
+        0 10px 30px rgba(0,0,0,0.4);
+    margin: 15px 0;
+    animation: jackpotPulse 2s ease-in-out infinite;
+    border: 3px solid rgba(255,255,255,0.4);
+    overflow: hidden;
 }
 
+.jackpot-display::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+    animation: jackpotShine 3s linear infinite;
+}
+
+.jackpot-icon { font-size: 2em; }
+.jackpot-label {
+    font-size: 0.9em;
+    font-weight: 800;
+    letter-spacing: 3px;
+    opacity: 0.8;
+}
+.jackpot-amount {
+    font-size: 2.5em;
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* ── Status bar ── */
 .status-bar {
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(15px);
     padding: 15px 25px;
     border-radius: 15px;
     margin-bottom: 20px;
@@ -63,6 +124,8 @@ body {
     align-items: center;
     flex-wrap: wrap;
     gap: 15px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 }
 
 .status-item {
@@ -79,18 +142,21 @@ body {
     animation: blink 1.5s infinite;
 }
 
-.status-open { background: var(--success); }
-.status-countdown { background: var(--accent); animation: blink 0.5s infinite; }
-.status-closed { background: var(--danger); }
+.status-open { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.status-countdown { background: var(--accent); animation: blink 0.5s infinite; box-shadow: 0 0 8px var(--accent); }
+.status-closed { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+.status-finished { background: #8b5cf6; box-shadow: 0 0 8px #8b5cf6; }
 
 .timer-display {
     font-size: 2em;
     font-weight: bold;
     font-family: 'Courier New', monospace;
-    background: rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.4);
     padding: 10px 20px;
     border-radius: 10px;
     color: var(--accent);
+    text-shadow: 0 0 15px var(--accent);
+    border: 1px solid rgba(245,158,11,0.3);
 }
 
 .schedule-closed {
@@ -102,11 +168,14 @@ body {
     font-weight: bold;
 }
 
+/* ── Players section ── */
 .players-section {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.04);
     border-radius: 15px;
     padding: 20px;
     margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
 }
 
 .players-list {
@@ -117,7 +186,7 @@ body {
 }
 
 .player-chip {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.08);
     padding: 8px 15px;
     border-radius: 20px;
     font-size: 0.9em;
@@ -130,21 +199,35 @@ body {
 
 .player-chip.ready {
     border-color: var(--success);
-    background: rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.15);
+    box-shadow: 0 0 10px rgba(16,185,129,0.3);
 }
 
 .player-chip.mine {
     border-color: var(--accent);
-    background: rgba(245, 158, 11, 0.2);
+    background: rgba(245, 158, 11, 0.15);
+    box-shadow: 0 0 10px rgba(245,158,11,0.3);
 }
 
+/* ── Game area ── */
 .game-area {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.04);
     border-radius: 20px;
     padding: 30px;
     margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
 }
 
+.section-title {
+    font-size: 1.8em;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ── CAJAS ── */
 .boxes-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -154,9 +237,9 @@ body {
 
 .box {
     aspect-ratio: 1;
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    border: 3px solid rgba(255,255,255,0.2);
-    border-radius: 15px;
+    background: linear-gradient(135deg, #312e81 0%, #4c1d95 100%);
+    border: 2px solid rgba(165, 180, 252, 0.3);
+    border-radius: 18px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -167,79 +250,132 @@ body {
     overflow: hidden;
 }
 
-.box:hover:not(.taken):not(.selected):not(.disabled) {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4);
-    border-color: var(--accent);
+/* Brillo interno en las cajas */
+.box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+    border-radius: 18px 18px 0 0;
+    pointer-events: none;
+}
+
+/* Cajas libres flotan suavemente */
+.box.floating {
+    animation: boxFloat 3s ease-in-out infinite;
+}
+
+.box:hover:not(.taken):not(.selected):not(.pending) {
+    transform: translateY(-8px) scale(1.07);
+    border-color: var(--gold);
+    box-shadow:
+        0 0 25px var(--glow-gold),
+        0 0 50px rgba(251,191,36,0.3),
+        0 15px 30px rgba(0,0,0,0.3);
+    animation: none;
+}
+
+/* Efecto de partícula al hover */
+.box:hover:not(.taken)::after {
+    content: '✨';
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    font-size: 1em;
+    animation: sparkleFloat 0.8s ease infinite alternate;
 }
 
 .box-number {
-    font-size: 1.5em;
-    font-weight: bold;
-    margin-bottom: 5px;
+    font-size: 1.4em;
+    font-weight: 800;
+    margin-bottom: 4px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 1;
 }
 
 .box-icon {
     font-size: 2em;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
 }
 
+/* Caja tomada */
 .box.taken {
-    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.55;
+    border-color: rgba(255,255,255,0.05);
+    animation: none !important;
 }
 
 .box.taken::after {
     content: '🔒';
     position: absolute;
-    font-size: 2em;
-    opacity: 0.5;
+    font-size: 1.8em;
+    opacity: 0.4;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
 }
 
+/* Caja seleccionada — AURA DORADA */
 .box.selected {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #065f46 0%, #059669 100%);
     border-color: #34d399;
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
-    animation: selectedPulse 1.5s infinite;
+    animation: selectedGoldenAura 1.5s ease-in-out infinite !important;
 }
 
+.box.selected::before {
+    background: linear-gradient(180deg, rgba(52,211,153,0.3) 0%, transparent 100%);
+}
+
+/* Caja pendiente */
 .box.pending {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    background: linear-gradient(135deg, #92400e 0%, #d97706 100%);
     border-color: #fcd34d;
-    animation: pulse 1s infinite;
+    animation: pendingPulse 1s ease-in-out infinite !important;
 }
 
+/* Caja extra seleccionada */
 .box.extra-selected {
-    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    background: linear-gradient(135deg, #831843 0%, #db2777 100%);
     border-color: #f472b6;
-    box-shadow: 0 0 30px rgba(236, 72, 153, 0.6);
+    box-shadow: 0 0 30px rgba(236, 72, 153, 0.7), 0 0 60px rgba(236,72,153,0.3);
+    animation: extraAura 1.5s ease-in-out infinite !important;
 }
 
+/* Caja ganadora */
 .box.winner {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+    background: linear-gradient(135deg, #92400e 0%, #fbbf24 100%) !important;
     border-color: #fcd34d;
-    animation: winnerPulse 0.5s infinite;
+    animation: winnerBlast 0.5s ease-in-out infinite !important;
     z-index: 10;
 }
 
+/* Caja vacía ganadora */
 .box.empty-winner {
-    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
-    animation: shake 0.5s ease;
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%) !important;
+    border-color: #6b7280;
+    animation: shake 0.4s ease !important;
 }
 
 .player-tag {
     position: absolute;
     bottom: 5px;
-    font-size: 0.7em;
-    background: rgba(0,0,0,0.5);
+    font-size: 0.65em;
+    background: rgba(0,0,0,0.6);
     padding: 2px 8px;
     border-radius: 10px;
     max-width: 90%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    z-index: 2;
 }
 
+/* ── Botones ── */
 .actions {
     display: flex;
     gap: 15px;
@@ -253,60 +389,62 @@ body {
     border: none;
     border-radius: 30px;
     font-size: 1.1em;
-    font-weight: bold;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s;
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-family: 'Exo 2', sans-serif;
 }
 
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none !important;
-}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--accent) 0%, #ea580c 100%);
+    background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
     color: white;
+    box-shadow: 0 5px 20px rgba(245,158,11,0.4);
 }
-
 .btn-primary:hover:not(:disabled) {
     transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 10px 30px rgba(245,158,11,0.6);
 }
 
 .btn-secondary {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.15);
     color: white;
-    border: 2px solid white;
+    border: 2px solid rgba(255,255,255,0.5);
+    backdrop-filter: blur(5px);
 }
-
-.btn-secondary:hover:not(:disabled) {
-    background: white;
-    color: var(--dark);
-}
+.btn-secondary:hover:not(:disabled) { background: white; color: var(--dark); }
 
 .btn-success {
-    background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
+    box-shadow: 0 5px 20px rgba(16,185,129,0.4);
+}
+.btn-success:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(16,185,129,0.6);
 }
 
 .btn-extra {
-    background: linear-gradient(135deg, var(--secondary) 0%, #be185d 100%);
+    background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
     color: white;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 5px 20px rgba(236,72,153,0.4);
 }
-
 .btn-extra::before {
     content: '✨';
     position: absolute;
     left: 10px;
     animation: sparkle 1s infinite;
 }
+.btn-extra:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(236,72,153,0.6);
+}
 
-/* Botón ganaste */
 .btn-win-again {
     background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
     color: #1f2937;
@@ -314,20 +452,16 @@ body {
     border: none;
     border-radius: 30px;
     font-size: 1.1em;
-    font-weight: bold;
+    font-weight: 800;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 10px 30px rgba(251, 191, 36, 0.5);
-    animation: pulse 1.5s infinite;
+    box-shadow: 0 0 30px rgba(251,191,36,0.6), 0 10px 30px rgba(0,0,0,0.3);
+    animation: jackpotPulse 1.5s infinite;
     letter-spacing: 0.5px;
+    font-family: 'Exo 2', sans-serif;
 }
+.btn-win-again:hover { transform: translateY(-3px) scale(1.03); }
 
-.btn-win-again:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 15px 40px rgba(251, 191, 36, 0.7);
-}
-
-/* Botón intentar de nuevo */
 .btn-try-again {
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
@@ -335,17 +469,14 @@ body {
     border: none;
     border-radius: 30px;
     font-size: 1.1em;
-    font-weight: bold;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 10px 30px rgba(99,102,241,0.4);
     letter-spacing: 0.5px;
+    font-family: 'Exo 2', sans-serif;
 }
-
-.btn-try-again:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 15px 40px rgba(99, 102, 241, 0.6);
-}
+.btn-try-again:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 15px 40px rgba(99,102,241,0.6); }
 
 .btn-small {
     padding: 8px 15px;
@@ -355,66 +486,51 @@ body {
     cursor: pointer;
     flex: 1;
 }
+.btn-approve { background: var(--success); color: white; }
+.btn-reject { background: var(--danger); color: white; }
 
-.btn-approve {
-    background: var(--success);
-    color: white;
-}
-
-.btn-reject {
-    background: var(--danger);
-    color: white;
-}
-
+/* ── Modal ── */
 .modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.9);
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(8px);
 }
-
-.modal.active {
-    display: flex;
-    animation: fadeIn 0.3s ease;
-}
+.modal.active { display: flex; animation: fadeIn 0.3s ease; }
 
 .modal-content {
-    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    background: linear-gradient(135deg, #1e1b4b 0%, #111827 100%);
     padding: 40px;
-    border-radius: 20px;
+    border-radius: 25px;
     max-width: 500px;
     width: 90%;
-    border: 2px solid var(--accent);
+    border: 2px solid rgba(251,191,36,0.5);
     position: relative;
+    box-shadow: 0 0 50px rgba(99,102,241,0.3), 0 25px 60px rgba(0,0,0,0.5);
 }
 
 .close-btn {
     position: absolute;
-    top: 15px;
-    right: 20px;
+    top: 15px; right: 20px;
     font-size: 2em;
     cursor: pointer;
     opacity: 0.6;
     transition: opacity 0.3s;
 }
-
-.close-btn:hover {
-    opacity: 1;
-}
+.close-btn:hover { opacity: 1; }
 
 .alias-box {
-    background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+    background: linear-gradient(135deg, #065f46 0%, #059669 100%);
     padding: 25px;
     border-radius: 15px;
     text-align: center;
     margin: 20px 0;
+    box-shadow: 0 5px 20px rgba(16,185,129,0.3);
 }
 
 .alias-text {
@@ -425,32 +541,28 @@ body {
     margin: 10px 0;
     cursor: pointer;
     user-select: all;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
 }
 
 .transfer-form input {
     width: 100%;
     padding: 15px;
     margin: 10px 0;
-    border: 2px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.07);
     color: white;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 1em;
+    transition: border-color 0.3s;
 }
+.transfer-form input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px rgba(245,158,11,0.2); }
 
-.transfer-form input:focus {
-    outline: none;
-    border-color: var(--accent);
-}
-
-/* Pantalla de resultado rediseñada */
+/* ── Pantalla resultado ── */
 .result-screen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.95);
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.96);
     display: none;
     align-items: center;
     justify-content: center;
@@ -459,40 +571,25 @@ body {
     text-align: center;
     padding: 30px;
 }
-
-.result-screen.active {
-    display: flex;
-    animation: zoomIn 0.5s ease;
-}
+.result-screen.active { display: flex; animation: zoomIn 0.5s ease; }
 
 .result-title-win {
     font-size: 2.8em;
-    font-weight: bold;
+    font-weight: 900;
     color: #fbbf24;
-    text-shadow: 0 0 30px rgba(251,191,36,0.7);
+    text-shadow: 0 0 30px rgba(251,191,36,0.8), 0 0 60px rgba(251,191,36,0.4);
     margin-bottom: 15px;
     animation: winnerPop 0.8s ease;
 }
-
 .result-title-lose {
     font-size: 2.5em;
-    font-weight: bold;
+    font-weight: 800;
     color: #c4b5fd;
     margin-bottom: 15px;
     animation: fadeInDown 0.5s ease;
 }
-
-.result-subtitle {
-    font-size: 1.1em;
-    opacity: 0.85;
-    margin-top: 10px;
-}
-
-.result-winner-other {
-    font-size: 1.4em;
-    color: #fbbf24;
-    margin: 10px 0;
-}
+.result-subtitle { font-size: 1.1em; opacity: 0.85; margin-top: 10px; }
+.result-winner-other { font-size: 1.4em; color: #fbbf24; margin: 10px 0; }
 
 .winner-name {
     font-size: 2.5em;
@@ -503,21 +600,18 @@ body {
 
 .prize-amount {
     font-size: 4em;
-    font-weight: bold;
+    font-weight: 900;
     background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 20px rgba(251,191,36,0.5));
     margin: 20px 0;
 }
 
-.no-winner {
-    font-size: 2em;
-    color: #9ca3af;
-    margin: 20px 0;
-}
+.no-winner { font-size: 2em; color: #9ca3af; margin: 20px 0; }
 
 .accumulated-message {
-    background: rgba(245, 158, 11, 0.2);
+    background: rgba(245, 158, 11, 0.15);
     border: 2px solid var(--accent);
     padding: 20px 30px;
     border-radius: 15px;
@@ -525,31 +619,51 @@ body {
     font-size: 1.4em;
     font-weight: bold;
     color: #fbbf24;
+    box-shadow: 0 0 20px rgba(245,158,11,0.2);
 }
 
+/* ── Rules ── */
 .rules-section {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.04);
     border-radius: 15px;
     padding: 20px;
     margin-top: 20px;
     font-size: 0.9em;
     line-height: 1.6;
+    border: 1px solid rgba(255,255,255,0.07);
 }
+.rules-section h3 { margin-bottom: 15px; color: var(--accent); }
+.rules-section ul { margin-left: 20px; opacity: 0.9; }
+.rules-section li { margin-bottom: 8px; }
 
-.rules-section h3 {
-    margin-bottom: 15px;
-    color: var(--accent);
+/* ── Pending transfers ── */
+.pending-transfers {
+    position: fixed;
+    top: 20px; right: 20px;
+    width: 350px;
+    max-height: 80vh;
+    background: rgba(15,12,41,0.97);
+    border: 2px solid var(--accent);
+    border-radius: 15px;
+    padding: 20px;
+    overflow-y: auto;
+    display: none;
+    z-index: 500;
+    box-shadow: 0 0 30px rgba(245,158,11,0.2);
 }
+.pending-transfers.active { display: block; }
 
-.rules-section ul {
-    margin-left: 20px;
-    opacity: 0.9;
+.transfer-card {
+    background: rgba(255,255,255,0.07);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--accent);
 }
+.transfer-card .amount { font-size: 1.3em; font-weight: bold; color: var(--accent); }
+.transfer-actions { display: flex; gap: 10px; margin-top: 10px; }
 
-.rules-section li {
-    margin-bottom: 8px;
-}
-
+/* ── Config ── */
 .config-panel {
     background: rgba(0,0,0,0.3);
     border: 2px solid var(--accent);
@@ -558,11 +672,7 @@ body {
     margin-bottom: 20px;
     display: none;
 }
-
-.config-panel.active {
-    display: block;
-    animation: slideDown 0.3s ease;
-}
+.config-panel.active { display: block; animation: slideDown 0.3s ease; }
 
 .config-grid {
     display: grid;
@@ -570,18 +680,8 @@ body {
     gap: 15px;
     margin-top: 15px;
 }
-
-.config-item {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.config-item label {
-    font-size: 0.85em;
-    opacity: 0.8;
-}
-
+.config-item { display: flex; flex-direction: column; gap: 5px; }
+.config-item label { font-size: 0.85em; opacity: 0.8; }
 .config-item input, .config-item select {
     padding: 10px;
     border: none;
@@ -590,129 +690,92 @@ body {
     color: white;
     font-size: 1em;
 }
-
-.config-item input:focus, .config-item select:focus {
-    outline: 2px solid var(--accent);
-}
+.config-item input:focus, .config-item select:focus { outline: 2px solid var(--accent); }
 
 .schedule-config {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.08);
     padding: 15px;
     border-radius: 10px;
     margin-top: 15px;
 }
+.schedule-config label { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 
-.schedule-config label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.admin-controls {
+/* ── Confetti ── */
+.confetti {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    gap: 10px;
-    z-index: 100;
+    width: 10px; height: 10px;
+    animation: confetti-fall 3s linear forwards;
+    z-index: 3000;
+    border-radius: 2px;
 }
 
-.admin-btn {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    font-size: 1.5em;
-    transition: all 0.3s;
-    background: var(--dark);
-    color: white;
-    border: 2px solid var(--accent);
-}
-
-.admin-btn:hover {
-    transform: scale(1.1);
-    background: var(--accent);
-}
-
-.pending-transfers {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 350px;
-    max-height: 80vh;
-    background: rgba(0,0,0,0.95);
-    border: 2px solid var(--accent);
-    border-radius: 15px;
-    padding: 20px;
-    overflow-y: auto;
-    display: none;
-    z-index: 500;
-}
-
-.pending-transfers.active {
-    display: block;
-}
-
-.transfer-card {
-    background: rgba(255,255,255,0.1);
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border-left: 4px solid var(--accent);
-}
-
-.transfer-card .amount {
-    font-size: 1.3em;
-    font-weight: bold;
-    color: var(--accent);
-}
-
-.transfer-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-
+/* ── ANIMACIONES ── */
 @keyframes fadeInDown {
     from { opacity: 0; transform: translateY(-30px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
-
 @keyframes slideDown {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes zoomIn {
     from { opacity: 0; transform: scale(0.8); }
     to { opacity: 1; transform: scale(1); }
 }
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
 @keyframes blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
 }
 
-@keyframes selectedPulse {
-    0%, 100% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.6); }
-    50% { box-shadow: 0 0 50px rgba(16, 185, 129, 0.9); }
+/* Jackpot brilla */
+@keyframes jackpotPulse {
+    0%, 100% { box-shadow: 0 0 40px rgba(251,191,36,0.8), 0 0 80px rgba(251,191,36,0.4); transform: scale(1); }
+    50% { box-shadow: 0 0 60px rgba(251,191,36,1), 0 0 120px rgba(251,191,36,0.6); transform: scale(1.03); }
+}
+@keyframes jackpotShine {
+    from { transform: translateX(-100%) rotate(45deg); }
+    to { transform: translateX(100%) rotate(45deg); }
 }
 
-@keyframes winnerPulse {
-    0%, 100% { transform: scale(1); box-shadow: 0 0 50px rgba(251, 191, 36, 0.8); }
-    50% { transform: scale(1.1); box-shadow: 0 0 80px rgba(251, 191, 36, 1); }
+/* Cajas flotan */
+@keyframes boxFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+}
+
+/* Aura dorada al seleccionar */
+@keyframes selectedGoldenAura {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(52,211,153,0.6), 0 0 40px rgba(52,211,153,0.3);
+        border-color: #34d399;
+    }
+    50% {
+        box-shadow: 0 0 35px rgba(251,191,36,0.9), 0 0 70px rgba(251,191,36,0.5), 0 0 100px rgba(251,191,36,0.2);
+        border-color: #fbbf24;
+    }
+}
+
+/* Pendiente vibra */
+@keyframes pendingPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(245,158,11,0.5); }
+    25% { transform: scale(1.02) rotate(-1deg); }
+    75% { transform: scale(1.02) rotate(1deg); }
+}
+
+/* Extra aura rosa */
+@keyframes extraAura {
+    0%, 100% { box-shadow: 0 0 25px rgba(236,72,153,0.6), 0 0 50px rgba(236,72,153,0.3); }
+    50% { box-shadow: 0 0 45px rgba(236,72,153,1), 0 0 90px rgba(236,72,153,0.5); }
+}
+
+/* Ganadora explota */
+@keyframes winnerBlast {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 50px rgba(251,191,36,0.9), 0 0 100px rgba(251,191,36,0.5); }
+    50% { transform: scale(1.12); box-shadow: 0 0 80px rgba(251,191,36,1), 0 0 160px rgba(251,191,36,0.7); }
 }
 
 @keyframes winnerPop {
@@ -723,78 +786,36 @@ body {
 
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-10px); }
-    75% { transform: translateX(10px); }
+    20% { transform: translateX(-8px) rotate(-2deg); }
+    40% { transform: translateX(8px) rotate(2deg); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
 }
 
 @keyframes sparkle {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.2); }
+    50% { opacity: 0.5; transform: scale(1.3); }
 }
 
-.confetti {
-    position: fixed;
-    width: 10px;
-    height: 10px;
-    background: #f0f;
-    position: absolute;
-    animation: confetti-fall 3s linear forwards;
-    z-index: 3000;
+@keyframes sparkleFloat {
+    from { transform: translateY(0) scale(1); opacity: 1; }
+    to { transform: translateY(-8px) scale(1.2); opacity: 0.7; }
 }
 
 @keyframes confetti-fall {
-    to {
-        transform: translateY(100vh) rotate(720deg);
-        opacity: 0;
-    }
+    to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
 }
 
-.hidden {
-    display: none !important;
-}
+.hidden { display: none !important; }
 
+/* ── Mobile ── */
 @media (max-width: 768px) {
-    .boxes-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-    }
-    
-    .header h1 {
-        font-size: 2em;
-    }
-    
-    .jackpot-display {
-        font-size: 1.5em;
-        padding: 15px 25px;
-    }
-    
-    .pending-transfers {
-        width: 90%;
-        right: 5%;
-        top: 10px;
-    }
-    
-    .admin-controls {
-        bottom: 10px;
-        right: 10px;
-    }
-    
-    .admin-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 1.2em;
-    }
-
-    .btn-win-again, .btn-try-again {
-        font-size: 0.95em;
-        padding: 15px 20px;
-    }
-
-    .result-title-win, .result-title-lose {
-        font-size: 2em;
-    }
-
-    .prize-amount {
-        font-size: 3em;
-    }
+    .boxes-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .main-title { font-size: 2.2em; }
+    .jackpot-amount { font-size: 1.8em; }
+    .jackpot-display { padding: 15px 25px; }
+    .pending-transfers { width: 90%; right: 5%; top: 10px; }
+    .btn-win-again, .btn-try-again { font-size: 0.95em; padding: 15px 20px; }
+    .result-title-win, .result-title-lose { font-size: 2em; }
+    .prize-amount { font-size: 3em; }
 }

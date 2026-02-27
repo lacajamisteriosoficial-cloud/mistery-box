@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎛️ Admin - Caja Misteriosa</title>
-  <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/style.css">
     <style>
         .admin-badge {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
@@ -57,6 +57,14 @@
             opacity: 0.8;
             margin-top: 5px;
         }
+
+        .top-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
     </style>
 </head>
 <body>
@@ -67,6 +75,33 @@
                 💰 POZO: $<span id="jackpotAmount">0</span>
             </div>
             <p style="margin-top: 10px; opacity: 0.9;">Panel de Control del Operador</p>
+        </div>
+
+        <!-- CONTROLES PRINCIPALES ARRIBA -->
+        <div class="top-controls">
+            <button class="btn btn-success" onclick="forceStart()">
+                ▶️ Forzar Inicio
+            </button>
+            <button class="btn btn-secondary" onclick="resetGame()">
+                🔄 Resetear Juego
+            </button>
+            <button class="btn btn-primary" onclick="togglePendingTransfers()">
+                💰 Ver Pagos (<span id="pendingBadge">0</span>)
+            </button>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div id="statusIndicator" class="status-indicator status-open"></div>
+                <span id="statusText">ESPERANDO JUGADORES</span>
+            </div>
+            <div class="status-item">
+                👥 <span id="playerCount">0</span>/<span id="maxPlayersDisplay">10</span>
+            </div>
+            <div class="timer-display" id="timerDisplay">--:--</div>
+            <div class="status-item">
+                💵 $<span id="entryPriceDisplay">500</span>
+            </div>
         </div>
 
         <div class="admin-panel">
@@ -92,6 +127,18 @@
                     <div class="stat-label">Confirmados</div>
                 </div>
             </div>
+        </div>
+
+        <div class="players-section">
+            <h3>Jugadores en la Sala</h3>
+            <div id="playersList" class="players-list"></div>
+        </div>
+
+        <div class="game-area">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2>Cajas Seleccionadas</h2>
+            </div>
+            <div id="boxesGrid" class="boxes-grid"></div>
         </div>
 
         <div id="configPanel" class="config-panel active">
@@ -153,58 +200,11 @@
             </button>
         </div>
 
-        <div class="status-bar">
-            <div class="status-item">
-                <div id="statusIndicator" class="status-indicator status-open"></div>
-                <span id="statusText">ESPERANDO JUGADORES</span>
-            </div>
-            <div class="status-item">
-                👥 <span id="playerCount">0</span>/<span id="maxPlayersDisplay">10</span>
-            </div>
-            <div class="timer-display" id="timerDisplay">--:--</div>
-            <div class="status-item">
-                💵 $<span id="entryPriceDisplay">500</span>
-            </div>
-        </div>
-
-        <div class="players-section">
-            <h3>Jugadores en la Sala</h3>
-            <div id="playersList" class="players-list"></div>
-        </div>
-
-        <div class="game-area">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h2>Cajas Seleccionadas</h2>
-            </div>
-            
-            <div id="boxesGrid" class="boxes-grid"></div>
-
-            <div class="actions">
-                <button class="btn btn-success" onclick="forceStart()">
-                    ▶️ Forzar Inicio
-                </button>
-                <button class="btn btn-secondary" onclick="resetGame()">
-                    🔄 Resetear Juego
-                </button>
-                <button class="btn btn-primary" onclick="togglePendingTransfers()">
-                    💰 Ver Pagos (<span id="pendingBadge">0</span>)
-                </button>
-            </div>
-        </div>
     </div>
 
     <div id="pendingTransfers" class="pending-transfers">
         <h3 style="margin-bottom: 15px; color: var(--accent);">⏳ Pagos Pendientes</h3>
         <div id="transfersList"></div>
-    </div>
-
-    <div id="resultScreen" class="result-screen">
-        <div class="winner-announcement">🎉</div>
-        <div id="resultTitle">¡Tenemos un Ganador!</div>
-        <div id="resultContent"></div>
-        <button class="btn btn-primary" style="margin-top: 30px;" onclick="nextRound()">
-            🔄 Siguiente Ronda
-        </button>
     </div>
 
     <script src="js/admin.js"></script>

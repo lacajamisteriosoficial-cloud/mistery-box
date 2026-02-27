@@ -7,13 +7,19 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+<!-- Canvas de partículas de fondo -->
+<canvas id="particlesCanvas"></canvas>
+
     <div class="container">
         <div class="header">
-            <h1>🎁 Caja Misteriosa</h1>
+            <h1 class="main-title">🎁 Caja Misteriosa</h1>
             <div class="jackpot-display">
-                💰 POZO: $<span id="jackpotAmount">0</span>
+                <span class="jackpot-icon">💰</span>
+                <span class="jackpot-label">POZO</span>
+                <span class="jackpot-amount">$<span id="jackpotAmount">0</span></span>
             </div>
-            <p style="margin-top: 10px; opacity: 0.9;">¡Tocá una caja para participar!</p>
+            <p class="header-sub">✨ ¡Tocá una caja para participar! ✨</p>
         </div>
 
         <div id="scheduleClosed" class="schedule-closed hidden">
@@ -35,7 +41,7 @@
         </div>
 
         <div class="players-section">
-            <h3>Jugadores en la Sala</h3>
+            <h3>🎮 Jugadores en la Sala</h3>
             <div id="playersList" class="players-list">
                 <p style="opacity: 0.6; width: 100%; text-align: center;">No hay jugadores todavía...</p>
             </div>
@@ -43,7 +49,7 @@
 
         <div class="game-area">
             <div style="text-align: center; margin-bottom: 20px;">
-                <h2>Seleccioná tu Caja</h2>
+                <h2 class="section-title">🎁 Seleccioná tu Caja</h2>
                 <p style="opacity: 0.8; margin-top: 5px;">Tocá una caja para participar. Transferí y esperá la aprobación.</p>
             </div>
             
@@ -128,11 +134,87 @@
         <div class="winner-announcement">🎉</div>
         <div id="resultTitle">¡Tenemos un Ganador!</div>
         <div id="resultContent"></div>
-        <button class="btn btn-primary" style="margin-top: 30px;" onclick="playAgain()">
+        <button id="playAgainBtn2" class="btn btn-primary" style="margin-top: 30px; display:none;" onclick="playAgain()">
             🔄 Volver a Jugar
         </button>
     </div>
 
     <script src="js/player.js"></script>
+    <script>
+    // ── Partículas de fondo ──────────────────────────────────────────────
+    const canvas = document.getElementById('particlesCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    function createParticle() {
+        return {
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 3 + 1,
+            speedX: (Math.random() - 0.5) * 0.4,
+            speedY: (Math.random() - 0.5) * 0.4,
+            opacity: Math.random() * 0.5 + 0.1,
+            color: `hsl(${Math.random() * 60 + 200}, 80%, 70%)`
+        };
+    }
+
+    for (let i = 0; i < 80; i++) particles.push(createParticle());
+
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            p.x += p.speedX;
+            p.y += p.speedY;
+            if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.opacity;
+            ctx.fill();
+        });
+        // Líneas entre partículas cercanas
+        ctx.globalAlpha = 0.08;
+        ctx.strokeStyle = '#a5b4fc';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 120) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // ── Efecto flotante en las cajas ─────────────────────────────────────
+    function addBoxFloatEffect() {
+        const boxes = document.querySelectorAll('.box:not(.taken):not(.selected):not(.pending)');
+        boxes.forEach((box, i) => {
+            box.style.animationDelay = `${(i * 0.15) % 2}s`;
+            box.classList.add('floating');
+        });
+    }
+
+    // Observar cambios en el grid para aplicar float a cajas nuevas
+    const observer = new MutationObserver(addBoxFloatEffect);
+    const grid = document.getElementById('boxesGrid');
+    if (grid) observer.observe(grid, { childList: true });
+    </script>
 </body>
 </html>

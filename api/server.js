@@ -11,23 +11,18 @@ app.use(express.static(path.join(__dirname, '../public')));
 // Protección con contraseña para el panel admin
 app.use('/admin', (req, res, next) => {
     const auth = req.headers['authorization'];
-
     if (!auth || !auth.startsWith('Basic ')) {
         res.set('WWW-Authenticate', 'Basic realm="Admin Panel"');
         return res.status(401).send('Acceso denegado');
     }
-
     const credentials = Buffer.from(auth.split(' ')[1], 'base64').toString();
     const [user, pass] = credentials.split(':');
-
     const adminUser = process.env.ADMIN_USER || 'admin';
     const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
-
     if (user !== adminUser || pass !== adminPass) {
         res.set('WWW-Authenticate', 'Basic realm="Admin Panel"');
         return res.status(401).send('Acceso denegado');
     }
-
     next();
 });
 app.use('/admin', express.static(path.join(__dirname, '../admin')));
@@ -42,6 +37,7 @@ let gameState = {
     countdownEnd: null,
     winner: null,
     winningBox: null,
+    lastPrize: null,
     pendingTransfers: [],
     config: {
         entryPrice: 500,
@@ -79,7 +75,7 @@ app.get('/api/state', (req, res) => {
         countdownEnd: gameState.countdownEnd,
         winner: gameState.winner,
         winningBox: gameState.winningBox,
-        prize: gameState.winner ? calculatePrize() : null,
+        prize: gameState.lastPrize,
         config: gameState.config,
         pendingTransfers: gameState.pendingTransfers,
         inSchedule: isWithinSchedule()
@@ -88,23 +84,11 @@ app.get('/api/state', (req, res) => {
 
 app.post('/api/request-entry', (req, res) => {
     const { name, operationId, boxNumber } = req.body;
-    
-    if (!isWithinSchedule()) {
-        return res.status(400).json({error: 'Fuera de horario de juego'});
-    }
-    
-    if (gameState.status !== 'OPEN') {
-        return res.status(400).json({error: 'La sala está cerrada'});
-    }
-    
-    if (gameState.players.length >= gameState.config.maxPlayers) {
-        return res.status(400).json({error: 'Sala completa'});
-    }
-    
-    if (gameState.boxes[boxNumber] || gameState.extraBoxes[boxNumber]) {
-        return res.status(400).json({error: 'Caja ocupada'});
-    }
-    
+    if (!isWithinSchedule()) return res.status(400).json({error: 'Fuera de horario de juego'});
+    if (gameState.status !== 'OPEN') return res.status(400).json({error: 'La sala está cerrada'});
+    if (gameState.players.length >= gameState.config.maxPlayers) return res.status(400).json({error: 'Sala completa'});
+    if (gameState.boxes[boxNumber] || gameState.extraBoxes[boxNumber]) return res.status(400).json({error: 'Caja ocupada'});
+
     const player = {
         id: Date.now().toString(),
         name,
@@ -114,7 +98,6 @@ app.post('/api/request-entry', (req, res) => {
         approved: false,
         selectedBox: boxNumber
     };
-    
     const transfer = {
         id: Date.now().toString(),
         playerId: player.id,
@@ -126,21 +109,16 @@ app.post('/api/request-entry', (req, res) => {
         timestamp: new Date().toISOString(),
         approved: false
     };
-    
     gameState.players.push(player);
     gameState.pendingTransfers.push(transfer);
-    
     res.json({player, transfer});
 });
 
 app.post('/api/request-extra', (req, res) => {
     const { playerId, operationId } = req.body;
     const player = gameState.players.find(p => p.id === playerId);
-    
-    if (!player || player.hasExtra) {
-        return res.status(400).json({error: 'No permitido'});
-    }
-    
+    if (!player || player.hasExtra) return res.status(400).json({error: 'No permitido'});
+
     const transfer = {
         id: Date.now().toString(),
         playerId,
@@ -151,7 +129,6 @@ app.post('/api/request-extra', (req, res) => {
         timestamp: new Date().toISOString(),
         approved: false
     };
-    
     gameState.pendingTransfers.push(transfer);
     res.json({transfer});
 });
@@ -159,50 +136,33 @@ app.post('/api/request-extra', (req, res) => {
 app.post('/api/confirm-box', (req, res) => {
     const { playerId, boxNumber } = req.body;
     const player = gameState.players.find(p => p.id === playerId);
-    
-    if (!player || !player.approved) {
-        return res.status(400).json({error: 'No autorizado'});
-    }
-    
-    if (gameState.boxes[boxNumber]) {
-        return res.status(400).json({error: 'Caja ocupada'});
-    }
-    
+    if (!player || !player.approved) return res.status(400).json({error: 'No autorizado'});
+    if (gameState.boxes[boxNumber]) return res.status(400).json({error: 'Caja ocupada'});
+
     gameState.boxes[boxNumber] = playerId;
     player.box = boxNumber;
-    
     checkAllSelected();
-    
     res.json({success: true});
 });
 
 app.post('/api/select-extra-box', (req, res) => {
     const { playerId, boxNumber } = req.body;
     const player = gameState.players.find(p => p.id === playerId);
-    
-    if (!player || !player.hasExtra || player.extraBox) {
-        return res.status(400).json({error: 'No permitido'});
-    }
-    
-    if (gameState.boxes[boxNumber] || gameState.extraBoxes[boxNumber]) {
-        return res.status(400).json({error: 'Caja ocupada'});
-    }
-    
+    if (!player || !player.hasExtra || player.extraBox) return res.status(400).json({error: 'No permitido'});
+    if (gameState.boxes[boxNumber] || gameState.extraBoxes[boxNumber]) return res.status(400).json({error: 'Caja ocupada'});
+
     gameState.extraBoxes[boxNumber] = playerId;
     player.extraBox = boxNumber;
-    
     res.json({success: true});
 });
 
 app.post('/api/approve-transfer', (req, res) => {
     const { transferId } = req.body;
     const transfer = gameState.pendingTransfers.find(t => t.id === transferId);
-    
     if (!transfer) return res.status(404).json({error: 'No encontrada'});
-    
+
     transfer.approved = true;
     const player = gameState.players.find(p => p.id === transfer.playerId);
-    
     if (transfer.type === 'entry') {
         player.approved = true;
         gameState.roundFund += gameState.config.entryPrice;
@@ -210,21 +170,18 @@ app.post('/api/approve-transfer', (req, res) => {
         player.hasExtra = true;
         gameState.roundFund += gameState.config.extraPrice;
     }
-    
     res.json({success: true, player});
 });
 
 app.post('/api/reject-transfer', (req, res) => {
     const { transferId } = req.body;
     const transfer = gameState.pendingTransfers.find(t => t.id === transferId);
-    
     if (transfer) {
         const player = gameState.players.find(p => p.id === transfer.playerId);
         if (player && !player.approved) {
             gameState.players = gameState.players.filter(p => p.id !== player.id);
         }
     }
-    
     gameState.pendingTransfers = gameState.pendingTransfers.filter(t => t.id !== transferId);
     res.json({success: true});
 });
@@ -250,7 +207,6 @@ app.post('/api/reset', (req, res) => {
 
 function resetRound(clearJackpot = false) {
     const jackpotToKeep = clearJackpot ? 0 : gameState.jackpot;
-    
     gameState.status = 'OPEN';
     gameState.players = [];
     gameState.boxes = {};
@@ -259,9 +215,9 @@ function resetRound(clearJackpot = false) {
     gameState.countdownEnd = null;
     gameState.winner = null;
     gameState.winningBox = null;
+    gameState.lastPrize = null;
     gameState.pendingTransfers = [];
     gameState.jackpot = jackpotToKeep;
-    
     if (timers.countdown) clearInterval(timers.countdown);
     if (timers.autoReset) clearTimeout(timers.autoReset);
 }
@@ -269,22 +225,17 @@ function resetRound(clearJackpot = false) {
 function checkAllSelected() {
     const approvedPlayers = gameState.players.filter(p => p.approved);
     const playersWithBox = approvedPlayers.filter(p => p.box);
-    
     if (playersWithBox.length >= gameState.config.minPlayers && gameState.status === 'OPEN') {
         const allSelected = playersWithBox.length === approvedPlayers.length;
-        if (allSelected) {
-            startCountdown();
-        }
+        if (allSelected) startCountdown();
     }
 }
 
 function startCountdown() {
     gameState.status = 'COUNTDOWN';
     gameState.countdownEnd = Date.now() + (gameState.config.countdownTime * 1000);
-    
     timers.countdown = setInterval(() => {
         const remaining = gameState.countdownEnd - Date.now();
-        
         if (remaining <= 0) {
             clearInterval(timers.countdown);
             closeRound();
@@ -294,47 +245,46 @@ function startCountdown() {
 
 function closeRound() {
     gameState.status = 'CLOSED';
-    
     const confirmedPlayers = gameState.players.filter(p => p.box && p.approved);
-    
     if (confirmedPlayers.length < gameState.config.minPlayers) {
         gameState.winningBox = Math.floor(Math.random() * gameState.config.totalBoxes) + 1;
         gameState.winner = null;
+        gameState.lastPrize = null;
         gameState.status = 'FINISHED';
         scheduleAutoReset();
         return;
     }
-    
-    setTimeout(() => {
-        drawWinner();
-    }, 500);
+    setTimeout(() => drawWinner(), 500);
 }
 
 function drawWinner() {
     const winningBox = Math.floor(Math.random() * gameState.config.totalBoxes) + 1;
     gameState.winningBox = winningBox;
-    
     const winnerId = gameState.boxes[winningBox] || gameState.extraBoxes[winningBox];
-    
+
     if (winnerId) {
-        gameState.winner = gameState.players.find(p => p.id === winnerId);
+        // Hay ganador - calcular premio ANTES de resetear jackpot
         const prize = calculatePrize();
+        gameState.winner = gameState.players.find(p => p.id === winnerId);
         gameState.winner.prize = prize;
+        gameState.lastPrize = prize;
         gameState.jackpot = 0;
     } else {
+        // No hay ganador - acumular al pozo
         const commission = gameState.roundFund * (gameState.config.commissionPercent / 100);
-        gameState.jackpot += gameState.roundFund - commission;
+        const accumulated = gameState.roundFund - commission;
+        gameState.jackpot += accumulated;
+        gameState.lastPrize = null;
         gameState.winner = null;
     }
-    
+
     gameState.status = 'FINISHED';
     scheduleAutoReset();
 }
 
 function scheduleAutoReset() {
-    // Espera 10 segundos para que los jugadores vean el resultado, luego resetea
     timers.autoReset = setTimeout(() => {
-        resetRound(false); // false = mantener el jackpot acumulado
+        resetRound(false); // mantener jackpot acumulado
     }, 10000);
 }
 
