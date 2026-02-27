@@ -8,6 +8,7 @@ let gameState = {
     jackpot: 0,
     selectedBox: null,
     currentPlayer: null,
+    resultShown: false,
     config: {
         entryPrice: 500,
         extraPrice: 1000,
@@ -63,11 +64,15 @@ async function fetchGameState() {
         renderBoxes();
         updateStatus(gameState.status);
         
-        // Verificar si hay resultado
-        if (data.winner !== undefined && gameState.status === 'FINISHED') {
-            if (!document.getElementById('resultScreen').classList.contains('active')) {
-                showResult(data.winner, data.winningBox, data.prize);
-            }
+        // Mostrar resultado UNA sola vez por ronda
+        if (gameState.status === 'FINISHED' && !gameState.resultShown) {
+            gameState.resultShown = true;
+            showResult(data.winner, data.winningBox, data.prize);
+        }
+
+        // Resetear flag cuando empieza nueva ronda
+        if (gameState.status === 'OPEN') {
+            gameState.resultShown = false;
         }
         
         // Si el jugador actual fue aprobado, actualizar UI
@@ -191,9 +196,7 @@ function updateStatus(status) {
     text.textContent = texts[status] || status;
 }
 
-// FLUJO PRINCIPAL: Tocar caja → Modal de pago
 function selectBox(boxNumber) {
-    // Si el juego terminó, no hacer nada (esperar a que vuelvan a jugar)
     if (gameState.status === 'FINISHED') {
         showNotification('La ronda terminó. Esperá una nueva.', 'warning');
         return;
@@ -204,33 +207,28 @@ function selectBox(boxNumber) {
         return;
     }
     
-    // Si la caja está tomada, no hacer nada
     if (gameState.boxes[boxNumber] || gameState.extraBoxes[boxNumber]) {
         showNotification('Esa caja ya fue elegida', 'error');
         return;
     }
     
-    // Si hay un jugador pendiente en esa caja
     const pendingPlayer = gameState.players.find(p => p.selectedBox === boxNumber && !p.approved);
     if (pendingPlayer) {
         showNotification('Esa caja está pendiente de aprobación', 'warning');
         return;
     }
     
-    // Si no hay jugador actual, abrir modal de pago
     if (!gameState.currentPlayer) {
         gameState.selectedBox = boxNumber;
         openPaymentModal();
         return;
     }
     
-    // Si hay jugador pero no aprobado, mostrar espera
     if (!gameState.currentPlayer.approved) {
         showNotification('Esperando confirmación de pago...', 'warning');
         return;
     }
     
-    // Si está aprobado pero no confirmó caja principal
     if (!gameState.currentPlayer.box) {
         gameState.selectedBox = boxNumber;
         renderBoxes();
@@ -238,7 +236,6 @@ function selectBox(boxNumber) {
         return;
     }
     
-    // Si ya tiene caja principal, intentar caja extra
     if (gameState.currentPlayer.hasExtra && !gameState.currentPlayer.extraBox) {
         submitExtraBoxSelection(boxNumber);
     }
@@ -253,7 +250,6 @@ function openPaymentModal() {
 
 function closePaymentModal() {
     document.getElementById('paymentModal').classList.remove('active');
-    // No limpiar selectedBox para que pueda volver a intentar
 }
 
 function copyAlias() {
@@ -392,17 +388,16 @@ async function submitExtraBox() {
 }
 
 function playAgain() {
-    // Limpiar todo y empezar de nuevo
     localStorage.removeItem('currentPlayer');
     gameState.currentPlayer = null;
     gameState.selectedBox = null;
+    gameState.resultShown = false;
     
     document.getElementById('resultScreen').classList.remove('active');
     document.getElementById('playAgainBtn').classList.add('hidden');
     document.getElementById('extraBtn').classList.add('hidden');
     document.getElementById('confirmBtn').classList.add('hidden');
     
-    // Recargar para limpiar estado
     location.reload();
 }
 
@@ -412,8 +407,6 @@ function showResult(winner, winningBox, prize) {
     const content = document.getElementById('resultContent');
     
     screen.classList.add('active');
-    
-    // Mostrar botón de volver a jugar
     document.getElementById('playAgainBtn').classList.remove('hidden');
     
     if (winner) {
@@ -427,7 +420,7 @@ function showResult(winner, winningBox, prize) {
     } else {
         title.textContent = '😔 Sin Ganador';
         content.innerHTML = `
-            <div class="no-winner">Nadie eligió la caja ${winningBox}</div>
+            <div class="no-winner">Nadie eligió la caja ganadora</div>
             <div class="accumulated-message">
                 💰 El pozo se acumula para la próxima ronda
             </div>
