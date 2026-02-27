@@ -8,7 +8,6 @@ let gameState = {
     jackpot: 0,
     roundFund: 0,
     pendingTransfers: [],
-    resultShown: false,
     config: {
         entryPrice: 500,
         extraPrice: 1000,
@@ -60,21 +59,56 @@ async function fetchGameState() {
         updateStatus(gameState.status);
         updateStats();
         updatePendingBadge();
-        
-        // Mostrar resultado UNA sola vez por ronda
-        if (gameState.status === 'FINISHED' && !gameState.resultShown) {
-            gameState.resultShown = true;
-            showResult(data.winner, data.winningBox, data.prize);
-        }
 
-        // Resetear flag cuando empieza nueva ronda
-        if (gameState.status === 'OPEN') {
-            gameState.resultShown = false;
+        // Mostrar resultado como sección informativa (no modal)
+        if (gameState.status === 'FINISHED') {
+            showResultInfo(data.winner, data.winningBox, data.prize);
+        } else {
+            hideResultInfo();
         }
 
     } catch (error) {
         console.error('Error:', error);
     }
+}
+
+function showResultInfo(winner, winningBox, prize) {
+    let infoDiv = document.getElementById('resultInfo');
+    if (!infoDiv) {
+        infoDiv = document.createElement('div');
+        infoDiv.id = 'resultInfo';
+        infoDiv.style.cssText = `
+            margin: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.1em;
+            border: 2px solid;
+        `;
+        // Insertar al inicio del body o en un contenedor principal
+        document.body.insertBefore(infoDiv, document.body.firstChild);
+    }
+
+    if (winner) {
+        infoDiv.style.background = 'rgba(16, 185, 129, 0.2)';
+        infoDiv.style.borderColor = '#10b981';
+        infoDiv.innerHTML = `
+            🎉 <strong>GANADOR: ${winner.name}</strong> — Premio: $${prize ? prize.toLocaleString() : 0}
+            <br><small>Caja ganadora: ${winningBox}</small>
+        `;
+    } else {
+        infoDiv.style.background = 'rgba(245, 158, 11, 0.2)';
+        infoDiv.style.borderColor = '#f59e0b';
+        infoDiv.innerHTML = `
+            😔 <strong>SIN GANADOR</strong> — Caja ganadora: ${winningBox || '?'}
+            <br><small>💰 Pozo acumulado: $${gameState.jackpot ? gameState.jackpot.toLocaleString() : 0}</small>
+        `;
+    }
+}
+
+function hideResultInfo() {
+    const infoDiv = document.getElementById('resultInfo');
+    if (infoDiv) infoDiv.remove();
 }
 
 function updateConfigDisplay() {
@@ -125,7 +159,6 @@ function renderBoxes() {
             }
         }
         
-        // Mostrar pendientes
         const pending = gameState.players.find(p => p.selectedBox === i && !p.approved);
         if (pending) {
             box.classList.add('pending');
@@ -312,48 +345,8 @@ async function rejectTransfer(transferId) {
     }
 }
 
-function showResult(winner, winningBox, prize) {
-    const screen = document.getElementById('resultScreen');
-    const title = document.getElementById('resultTitle');
-    const content = document.getElementById('resultContent');
-    
-    screen.classList.add('active');
-    
-    if (winner) {
-        title.textContent = '🎉 ¡Tenemos un Ganador!';
-        content.innerHTML = `
-            <div class="winner-name">${winner.name}</div>
-            <div class="prize-amount">$${prize.toLocaleString()}</div>
-            <p>¡Se lleva el pozo acumulado!</p>
-        `;
-        createConfetti();
-    } else {
-        const accumulated = gameState.jackpot || 0;
-        title.textContent = '😔 Sin Ganador';
-        content.innerHTML = `
-            <div class="no-winner">Nadie eligió la caja ganadora</div>
-            <div class="accumulated-message">
-                💰 Se acumulan $${accumulated.toLocaleString()} al pozo
-            </div>
-        `;
-    }
-}
-
-function createConfetti() {
-    for (let i = 0; i < 100; i++) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti';
-        confetti.style.left = Math.random() * 100 + 'vw';
-        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-        confetti.style.animationDelay = Math.random() * 2 + 's';
-        document.body.appendChild(confetti);
-        setTimeout(() => confetti.remove(), 3000);
-    }
-}
-
 function nextRound() {
-    document.getElementById('resultScreen').classList.remove('active');
-    gameState.resultShown = false;
+    hideResultInfo();
     fetchGameState();
 }
 
