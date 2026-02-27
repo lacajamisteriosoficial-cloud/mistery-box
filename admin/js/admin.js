@@ -8,6 +8,7 @@ let gameState = {
     jackpot: 0,
     roundFund: 0,
     pendingTransfers: [],
+    resultShown: false,
     config: {
         entryPrice: 500,
         extraPrice: 1000,
@@ -60,9 +61,17 @@ async function fetchGameState() {
         updateStats();
         updatePendingBadge();
         
-        if (data.winner !== undefined && !document.getElementById('resultScreen').classList.contains('active')) {
+        // Mostrar resultado UNA sola vez por ronda
+        if (gameState.status === 'FINISHED' && !gameState.resultShown) {
+            gameState.resultShown = true;
             showResult(data.winner, data.winningBox, data.prize);
         }
+
+        // Resetear flag cuando empieza nueva ronda
+        if (gameState.status === 'OPEN') {
+            gameState.resultShown = false;
+        }
+
     } catch (error) {
         console.error('Error:', error);
     }
@@ -319,11 +328,12 @@ function showResult(winner, winningBox, prize) {
         `;
         createConfetti();
     } else {
+        const accumulated = gameState.jackpot || 0;
         title.textContent = '😔 Sin Ganador';
         content.innerHTML = `
-            <div class="no-winner">Nadie eligió la caja ${winningBox}</div>
+            <div class="no-winner">Nadie eligió la caja ganadora</div>
             <div class="accumulated-message">
-                💰 Se acumulan $${prize.toLocaleString()} al pozo
+                💰 Se acumulan $${accumulated.toLocaleString()} al pozo
             </div>
         `;
     }
@@ -343,6 +353,7 @@ function createConfetti() {
 
 function nextRound() {
     document.getElementById('resultScreen').classList.remove('active');
+    gameState.resultShown = false;
     fetchGameState();
 }
 
