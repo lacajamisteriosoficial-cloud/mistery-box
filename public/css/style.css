@@ -9,9 +9,6 @@
     --dark: #1f2937;
     --light: #f3f4f6;
     --gold: #fbbf24;
-    --glow-purple: rgba(99, 102, 241, 0.6);
-    --glow-gold: rgba(251, 191, 36, 0.7);
-    --glow-green: rgba(16, 185, 129, 0.6);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -24,7 +21,6 @@ body {
     overflow-x: hidden;
 }
 
-/* ── Canvas partículas ── */
 #particlesCanvas {
     position: fixed;
     top: 0; left: 0;
@@ -51,11 +47,12 @@ body {
 .main-title {
     font-size: 3.2em;
     font-weight: 900;
-    background: linear-gradient(135deg, #fff 0%, #c4b5fd 40%, #fbbf24 100%);
+    /* Gradiente visible, no blanco puro */
+    background: linear-gradient(135deg, #fbbf24 0%, #f472b6 50%, #818cf8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: none;
-    filter: drop-shadow(0 0 20px rgba(196, 181, 253, 0.5));
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(251,191,36,0.4));
     margin-bottom: 15px;
     letter-spacing: 2px;
 }
@@ -65,52 +62,37 @@ body {
     opacity: 0.9;
     font-size: 1.1em;
     letter-spacing: 1px;
+    color: #c4b5fd;
 }
 
-/* ── Jackpot display SÚPER llamativo ── */
+/* ── Jackpot ── */
 .jackpot-display {
     position: relative;
-    background: linear-gradient(135deg, #92400e 0%, #b45309 30%, #fbbf24 60%, #f59e0b 100%);
+    background: linear-gradient(135deg, #78350f 0%, #b45309 30%, #fbbf24 70%, #f59e0b 100%);
     color: #1f2937;
-    padding: 20px 50px;
+    padding: 18px 45px;
     border-radius: 25px;
     display: inline-flex;
     align-items: center;
     gap: 12px;
     font-weight: 900;
-    box-shadow:
-        0 0 40px rgba(251, 191, 36, 0.8),
-        0 0 80px rgba(251, 191, 36, 0.4),
-        0 10px 30px rgba(0,0,0,0.4);
+    box-shadow: 0 0 40px rgba(251,191,36,0.8), 0 0 80px rgba(251,191,36,0.4), 0 10px 30px rgba(0,0,0,0.4);
     margin: 15px 0;
     animation: jackpotPulse 2s ease-in-out infinite;
-    border: 3px solid rgba(255,255,255,0.4);
+    border: 3px solid rgba(255,255,255,0.5);
     overflow: hidden;
 }
-
 .jackpot-display::before {
     content: '';
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
     animation: jackpotShine 3s linear infinite;
 }
-
 .jackpot-icon { font-size: 2em; }
-.jackpot-label {
-    font-size: 0.9em;
-    font-weight: 800;
-    letter-spacing: 3px;
-    opacity: 0.8;
-}
-.jackpot-amount {
-    font-size: 2.5em;
-    font-weight: 900;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
+.jackpot-label { font-size: 0.85em; font-weight: 800; letter-spacing: 3px; opacity: 0.75; }
+.jackpot-amount { font-size: 2.5em; font-weight: 900; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
 /* ── Status bar ── */
 .status-bar {
@@ -125,25 +107,11 @@ body {
     flex-wrap: wrap;
     gap: 15px;
     border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 }
-
-.status-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-}
-
-.status-indicator {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    animation: blink 1.5s infinite;
-}
-
-.status-open { background: var(--success); box-shadow: 0 0 8px var(--success); }
-.status-countdown { background: var(--accent); animation: blink 0.5s infinite; box-shadow: 0 0 8px var(--accent); }
+.status-item { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.status-indicator { width: 12px; height: 12px; border-radius: 50%; }
+.status-open { background: var(--success); box-shadow: 0 0 8px var(--success); animation: blink 1.5s infinite; }
+.status-countdown { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: blink 0.5s infinite; }
 .status-closed { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
 .status-finished { background: #8b5cf6; box-shadow: 0 0 8px #8b5cf6; }
 
@@ -175,16 +143,8 @@ body {
     padding: 20px;
     margin-bottom: 20px;
     border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(10px);
 }
-
-.players-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
-}
-
+.players-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
 .player-chip {
     background: rgba(255,255,255,0.08);
     padding: 8px 15px;
@@ -196,18 +156,8 @@ body {
     border: 2px solid transparent;
     transition: all 0.3s;
 }
-
-.player-chip.ready {
-    border-color: var(--success);
-    background: rgba(16, 185, 129, 0.15);
-    box-shadow: 0 0 10px rgba(16,185,129,0.3);
-}
-
-.player-chip.mine {
-    border-color: var(--accent);
-    background: rgba(245, 158, 11, 0.15);
-    box-shadow: 0 0 10px rgba(245,158,11,0.3);
-}
+.player-chip.ready { border-color: var(--success); background: rgba(16,185,129,0.15); box-shadow: 0 0 10px rgba(16,185,129,0.3); }
+.player-chip.mine { border-color: var(--accent); background: rgba(245,158,11,0.15); }
 
 /* ── Game area ── */
 .game-area {
@@ -216,15 +166,15 @@ body {
     padding: 30px;
     margin-bottom: 20px;
     border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(10px);
 }
 
 .section-title {
     font-size: 1.8em;
     font-weight: 800;
-    background: linear-gradient(135deg, #fff 0%, #c4b5fd 100%);
+    background: linear-gradient(135deg, #fbbf24 0%, #f472b6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 /* ── CAJAS ── */
@@ -237,8 +187,9 @@ body {
 
 .box {
     aspect-ratio: 1;
-    background: linear-gradient(135deg, #312e81 0%, #4c1d95 100%);
-    border: 2px solid rgba(165, 180, 252, 0.3);
+    /* Cajas con color morado/rojo llamativo como antes */
+    background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 50%, #be185d 100%);
+    border: 2px solid rgba(196,181,253,0.4);
     border-radius: 18px;
     display: flex;
     flex-direction: column;
@@ -248,116 +199,111 @@ body {
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 4px 15px rgba(124,58,237,0.3);
 }
 
-/* Brillo interno en las cajas */
+/* Brillo interno */
 .box::before {
     content: '';
     position: absolute;
     top: 0; left: 0;
-    width: 100%; height: 50%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+    width: 100%; height: 45%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
     border-radius: 18px 18px 0 0;
     pointer-events: none;
 }
 
-/* Cajas libres flotan suavemente */
+/* Cajas flotan */
 .box.floating {
-    animation: boxFloat 3s ease-in-out infinite;
+    animation: boxFloat 2.5s ease-in-out infinite;
 }
 
+/* Hover — aura dorada */
 .box:hover:not(.taken):not(.selected):not(.pending) {
-    transform: translateY(-8px) scale(1.07);
+    transform: translateY(-8px) scale(1.08);
     border-color: var(--gold);
-    box-shadow:
-        0 0 25px var(--glow-gold),
-        0 0 50px rgba(251,191,36,0.3),
-        0 15px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 0 25px rgba(251,191,36,0.8), 0 0 60px rgba(251,191,36,0.4), 0 15px 30px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #db2777 100%);
     animation: none;
 }
 
-/* Efecto de partícula al hover */
 .box:hover:not(.taken)::after {
     content: '✨';
     position: absolute;
-    top: 5px;
-    right: 8px;
-    font-size: 1em;
-    animation: sparkleFloat 0.8s ease infinite alternate;
+    top: 4px; right: 6px;
+    font-size: 0.9em;
+    animation: sparkleFloat 0.7s ease infinite alternate;
+    z-index: 3;
 }
 
 .box-number {
     font-size: 1.4em;
     font-weight: 800;
     margin-bottom: 4px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
     position: relative;
     z-index: 1;
 }
-
 .box-icon {
     font-size: 2em;
     position: relative;
     z-index: 1;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
 
-/* Caja tomada */
+/* Tomada */
 .box.taken {
     background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
     cursor: not-allowed;
-    opacity: 0.55;
+    opacity: 0.5;
     border-color: rgba(255,255,255,0.05);
+    box-shadow: none;
     animation: none !important;
 }
-
 .box.taken::after {
     content: '🔒';
     position: absolute;
     font-size: 1.8em;
-    opacity: 0.4;
+    opacity: 0.35;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
 }
 
-/* Caja seleccionada — AURA DORADA */
+/* Seleccionada — aura dorada pulsante */
 .box.selected {
     background: linear-gradient(135deg, #065f46 0%, #059669 100%);
     border-color: #34d399;
     animation: selectedGoldenAura 1.5s ease-in-out infinite !important;
 }
+.box.selected::before { background: linear-gradient(180deg, rgba(52,211,153,0.3) 0%, transparent 100%); }
 
-.box.selected::before {
-    background: linear-gradient(180deg, rgba(52,211,153,0.3) 0%, transparent 100%);
-}
-
-/* Caja pendiente */
+/* Pendiente — vibra */
 .box.pending {
     background: linear-gradient(135deg, #92400e 0%, #d97706 100%);
     border-color: #fcd34d;
     animation: pendingPulse 1s ease-in-out infinite !important;
 }
 
-/* Caja extra seleccionada */
+/* Extra */
 .box.extra-selected {
     background: linear-gradient(135deg, #831843 0%, #db2777 100%);
     border-color: #f472b6;
-    box-shadow: 0 0 30px rgba(236, 72, 153, 0.7), 0 0 60px rgba(236,72,153,0.3);
+    box-shadow: 0 0 30px rgba(236,72,153,0.7), 0 0 60px rgba(236,72,153,0.3);
     animation: extraAura 1.5s ease-in-out infinite !important;
 }
 
-/* Caja ganadora */
+/* Ganadora */
 .box.winner {
-    background: linear-gradient(135deg, #92400e 0%, #fbbf24 100%) !important;
+    background: linear-gradient(135deg, #78350f 0%, #fbbf24 100%) !important;
     border-color: #fcd34d;
     animation: winnerBlast 0.5s ease-in-out infinite !important;
     z-index: 10;
 }
 
-/* Caja vacía ganadora */
+/* Vacía ganadora */
 .box.empty-winner {
     background: linear-gradient(135deg, #374151 0%, #4b5563 100%) !important;
-    border-color: #6b7280;
+    border-color: #9ca3af;
     animation: shake 0.4s ease !important;
 }
 
@@ -365,7 +311,7 @@ body {
     position: absolute;
     bottom: 5px;
     font-size: 0.65em;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.65);
     padding: 2px 8px;
     border-radius: 10px;
     max-width: 90%;
@@ -376,13 +322,7 @@ body {
 }
 
 /* ── Botones ── */
-.actions {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin: 20px 0;
-}
+.actions { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
 
 .btn {
     padding: 15px 30px;
@@ -396,7 +336,6 @@ body {
     letter-spacing: 1px;
     font-family: 'Exo 2', sans-serif;
 }
-
 .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
 .btn-primary {
@@ -404,16 +343,12 @@ body {
     color: white;
     box-shadow: 0 5px 20px rgba(245,158,11,0.4);
 }
-.btn-primary:hover:not(:disabled) {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(245,158,11,0.6);
-}
+.btn-primary:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(245,158,11,0.6); }
 
 .btn-secondary {
     background: rgba(255,255,255,0.15);
     color: white;
     border: 2px solid rgba(255,255,255,0.5);
-    backdrop-filter: blur(5px);
 }
 .btn-secondary:hover:not(:disabled) { background: white; color: var(--dark); }
 
@@ -422,10 +357,7 @@ body {
     color: white;
     box-shadow: 0 5px 20px rgba(16,185,129,0.4);
 }
-.btn-success:hover:not(:disabled) {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(16,185,129,0.6);
-}
+.btn-success:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(16,185,129,0.6); }
 
 .btn-extra {
     background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
@@ -434,16 +366,8 @@ body {
     overflow: hidden;
     box-shadow: 0 5px 20px rgba(236,72,153,0.4);
 }
-.btn-extra::before {
-    content: '✨';
-    position: absolute;
-    left: 10px;
-    animation: sparkle 1s infinite;
-}
-.btn-extra:hover:not(:disabled) {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(236,72,153,0.6);
-}
+.btn-extra::before { content: '✨'; position: absolute; left: 10px; animation: sparkle 1s infinite; }
+.btn-extra:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(236,72,153,0.6); }
 
 .btn-win-again {
     background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
@@ -451,13 +375,12 @@ body {
     padding: 18px 35px;
     border: none;
     border-radius: 30px;
-    font-size: 1.1em;
-    font-weight: 800;
+    font-size: 1.15em;
+    font-weight: 900;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 0 30px rgba(251,191,36,0.6), 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 0 30px rgba(251,191,36,0.7), 0 10px 30px rgba(0,0,0,0.3);
     animation: jackpotPulse 1.5s infinite;
-    letter-spacing: 0.5px;
     font-family: 'Exo 2', sans-serif;
 }
 .btn-win-again:hover { transform: translateY(-3px) scale(1.03); }
@@ -473,164 +396,102 @@ body {
     cursor: pointer;
     transition: all 0.3s;
     box-shadow: 0 10px 30px rgba(99,102,241,0.4);
-    letter-spacing: 0.5px;
     font-family: 'Exo 2', sans-serif;
 }
 .btn-try-again:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 15px 40px rgba(99,102,241,0.6); }
 
-.btn-small {
-    padding: 8px 15px;
-    font-size: 0.85em;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    flex: 1;
-}
+.btn-small { padding: 8px 15px; font-size: 0.85em; border: none; border-radius: 5px; cursor: pointer; flex: 1; }
 .btn-approve { background: var(--success); color: white; }
 .btn-reject { background: var(--danger); color: white; }
 
 /* ── Modal ── */
 .modal {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    backdrop-filter: blur(8px);
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.87); display: none; align-items: center;
+    justify-content: center; z-index: 1000; backdrop-filter: blur(8px);
 }
 .modal.active { display: flex; animation: fadeIn 0.3s ease; }
-
 .modal-content {
     background: linear-gradient(135deg, #1e1b4b 0%, #111827 100%);
-    padding: 40px;
-    border-radius: 25px;
-    max-width: 500px;
-    width: 90%;
-    border: 2px solid rgba(251,191,36,0.5);
-    position: relative;
+    padding: 40px; border-radius: 25px; max-width: 500px; width: 90%;
+    border: 2px solid rgba(251,191,36,0.5); position: relative;
     box-shadow: 0 0 50px rgba(99,102,241,0.3), 0 25px 60px rgba(0,0,0,0.5);
 }
-
-.close-btn {
-    position: absolute;
-    top: 15px; right: 20px;
-    font-size: 2em;
-    cursor: pointer;
-    opacity: 0.6;
-    transition: opacity 0.3s;
-}
+.close-btn { position: absolute; top: 15px; right: 20px; font-size: 2em; cursor: pointer; opacity: 0.6; transition: opacity 0.3s; }
 .close-btn:hover { opacity: 1; }
 
 .alias-box {
     background: linear-gradient(135deg, #065f46 0%, #059669 100%);
-    padding: 25px;
-    border-radius: 15px;
-    text-align: center;
-    margin: 20px 0;
+    padding: 25px; border-radius: 15px; text-align: center; margin: 20px 0;
     box-shadow: 0 5px 20px rgba(16,185,129,0.3);
 }
-
 .alias-text {
-    font-size: 2em;
-    font-weight: bold;
-    font-family: 'Courier New', monospace;
-    letter-spacing: 3px;
-    margin: 10px 0;
-    cursor: pointer;
-    user-select: all;
-    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+    font-size: 2em; font-weight: bold; font-family: 'Courier New', monospace;
+    letter-spacing: 3px; margin: 10px 0; cursor: pointer; user-select: all;
 }
-
 .transfer-form input {
-    width: 100%;
-    padding: 15px;
-    margin: 10px 0;
-    border: 2px solid rgba(255,255,255,0.15);
-    background: rgba(255,255,255,0.07);
-    color: white;
-    border-radius: 12px;
-    font-size: 1em;
-    transition: border-color 0.3s;
+    width: 100%; padding: 15px; margin: 10px 0;
+    border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.07);
+    color: white; border-radius: 12px; font-size: 1em; transition: border-color 0.3s;
 }
 .transfer-form input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px rgba(245,158,11,0.2); }
 
 /* ── Pantalla resultado ── */
 .result-screen {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.96);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-    flex-direction: column;
-    text-align: center;
-    padding: 30px;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(ellipse at center, #1a0533 0%, #000 70%);
+    display: none; align-items: center; justify-content: center;
+    z-index: 2000; flex-direction: column; text-align: center; padding: 30px;
+    overflow-y: auto;
 }
 .result-screen.active { display: flex; animation: zoomIn 0.5s ease; }
 
 .result-title-win {
-    font-size: 2.8em;
-    font-weight: 900;
-    color: #fbbf24;
-    text-shadow: 0 0 30px rgba(251,191,36,0.8), 0 0 60px rgba(251,191,36,0.4);
-    margin-bottom: 15px;
-    animation: winnerPop 0.8s ease;
+    font-size: 3em; font-weight: 900; color: #fbbf24;
+    text-shadow: 0 0 30px rgba(251,191,36,0.9), 0 0 70px rgba(251,191,36,0.5);
+    margin-bottom: 10px; animation: winnerPop 0.8s ease;
 }
 .result-title-lose {
-    font-size: 2.5em;
-    font-weight: 800;
-    color: #c4b5fd;
-    margin-bottom: 15px;
-    animation: fadeInDown 0.5s ease;
+    font-size: 2.5em; font-weight: 800; color: #c4b5fd;
+    margin-bottom: 10px; animation: fadeInDown 0.5s ease;
 }
+
+/* Caja ganadora reveal */
+.winning-box-reveal {
+    margin: 20px auto;
+    padding: 15px 30px;
+    background: rgba(255,255,255,0.07);
+    border: 2px solid rgba(196,181,253,0.4);
+    border-radius: 15px;
+    font-size: 1.2em;
+    display: inline-block;
+}
+.winning-box-number {
+    font-size: 1.5em;
+    font-weight: 900;
+    color: #fbbf24;
+    text-shadow: 0 0 20px rgba(251,191,36,0.8);
+}
+
 .result-subtitle { font-size: 1.1em; opacity: 0.85; margin-top: 10px; }
 .result-winner-other { font-size: 1.4em; color: #fbbf24; margin: 10px 0; }
-
-.winner-name {
-    font-size: 2.5em;
-    color: var(--accent);
-    margin: 20px 0;
-    text-shadow: 0 0 30px var(--accent);
-}
-
 .prize-amount {
-    font-size: 4em;
-    font-weight: 900;
+    font-size: 4.5em; font-weight: 900;
     background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 20px rgba(251,191,36,0.5));
-    margin: 20px 0;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    filter: drop-shadow(0 0 25px rgba(251,191,36,0.6)); margin: 15px 0;
 }
-
-.no-winner { font-size: 2em; color: #9ca3af; margin: 20px 0; }
-
 .accumulated-message {
-    background: rgba(245, 158, 11, 0.15);
-    border: 2px solid var(--accent);
-    padding: 20px 30px;
-    border-radius: 15px;
-    margin-top: 20px;
-    font-size: 1.4em;
-    font-weight: bold;
-    color: #fbbf24;
-    box-shadow: 0 0 20px rgba(245,158,11,0.2);
+    background: rgba(245,158,11,0.15); border: 2px solid var(--accent);
+    padding: 20px 30px; border-radius: 15px; margin-top: 15px;
+    font-size: 1.5em; font-weight: bold; color: #fbbf24;
+    box-shadow: 0 0 25px rgba(245,158,11,0.2);
 }
 
 /* ── Rules ── */
 .rules-section {
-    background: rgba(255,255,255,0.04);
-    border-radius: 15px;
-    padding: 20px;
-    margin-top: 20px;
-    font-size: 0.9em;
-    line-height: 1.6;
-    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.04); border-radius: 15px; padding: 20px; margin-top: 20px;
+    font-size: 0.9em; line-height: 1.6; border: 1px solid rgba(255,255,255,0.07);
 }
 .rules-section h3 { margin-bottom: 15px; color: var(--accent); }
 .rules-section ul { margin-left: 20px; opacity: 0.9; }
@@ -638,141 +499,67 @@ body {
 
 /* ── Pending transfers ── */
 .pending-transfers {
-    position: fixed;
-    top: 20px; right: 20px;
-    width: 350px;
-    max-height: 80vh;
-    background: rgba(15,12,41,0.97);
-    border: 2px solid var(--accent);
-    border-radius: 15px;
-    padding: 20px;
-    overflow-y: auto;
-    display: none;
-    z-index: 500;
+    position: fixed; top: 20px; right: 20px; width: 350px; max-height: 80vh;
+    background: rgba(15,12,41,0.97); border: 2px solid var(--accent); border-radius: 15px;
+    padding: 20px; overflow-y: auto; display: none; z-index: 500;
     box-shadow: 0 0 30px rgba(245,158,11,0.2);
 }
 .pending-transfers.active { display: block; }
-
 .transfer-card {
-    background: rgba(255,255,255,0.07);
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border-left: 4px solid var(--accent);
+    background: rgba(255,255,255,0.07); padding: 15px; border-radius: 10px;
+    margin-bottom: 10px; border-left: 4px solid var(--accent);
 }
 .transfer-card .amount { font-size: 1.3em; font-weight: bold; color: var(--accent); }
 .transfer-actions { display: flex; gap: 10px; margin-top: 10px; }
 
 /* ── Config ── */
-.config-panel {
-    background: rgba(0,0,0,0.3);
-    border: 2px solid var(--accent);
-    border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 20px;
-    display: none;
-}
+.config-panel { background: rgba(0,0,0,0.3); border: 2px solid var(--accent); border-radius: 15px; padding: 20px; margin-bottom: 20px; display: none; }
 .config-panel.active { display: block; animation: slideDown 0.3s ease; }
-
-.config-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-top: 15px;
-}
+.config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
 .config-item { display: flex; flex-direction: column; gap: 5px; }
 .config-item label { font-size: 0.85em; opacity: 0.8; }
-.config-item input, .config-item select {
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.2);
-    color: white;
-    font-size: 1em;
-}
+.config-item input, .config-item select { padding: 10px; border: none; border-radius: 8px; background: rgba(255,255,255,0.2); color: white; font-size: 1em; }
 .config-item input:focus, .config-item select:focus { outline: 2px solid var(--accent); }
-
-.schedule-config {
-    background: rgba(255,255,255,0.08);
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 15px;
-}
+.schedule-config { background: rgba(255,255,255,0.08); padding: 15px; border-radius: 10px; margin-top: 15px; }
 .schedule-config label { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 
 /* ── Confetti ── */
-.confetti {
-    position: fixed;
-    width: 10px; height: 10px;
-    animation: confetti-fall 3s linear forwards;
-    z-index: 3000;
-    border-radius: 2px;
-}
+.confetti { position: fixed; animation: confetti-fall 3s linear forwards; z-index: 3000; border-radius: 2px; }
 
 /* ── ANIMACIONES ── */
-@keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes zoomIn {
-    from { opacity: 0; transform: scale(0.8); }
-    to { opacity: 1; transform: scale(1); }
-}
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-}
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes zoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-/* Jackpot brilla */
 @keyframes jackpotPulse {
     0%, 100% { box-shadow: 0 0 40px rgba(251,191,36,0.8), 0 0 80px rgba(251,191,36,0.4); transform: scale(1); }
     50% { box-shadow: 0 0 60px rgba(251,191,36,1), 0 0 120px rgba(251,191,36,0.6); transform: scale(1.03); }
 }
-@keyframes jackpotShine {
-    from { transform: translateX(-100%) rotate(45deg); }
-    to { transform: translateX(100%) rotate(45deg); }
-}
+@keyframes jackpotShine { from { transform: translateX(-100%) rotate(45deg); } to { transform: translateX(100%) rotate(45deg); } }
 
-/* Cajas flotan */
 @keyframes boxFloat {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-6px); }
+    50% { transform: translateY(-7px); }
 }
 
-/* Aura dorada al seleccionar */
 @keyframes selectedGoldenAura {
-    0%, 100% {
-        box-shadow: 0 0 20px rgba(52,211,153,0.6), 0 0 40px rgba(52,211,153,0.3);
-        border-color: #34d399;
-    }
-    50% {
-        box-shadow: 0 0 35px rgba(251,191,36,0.9), 0 0 70px rgba(251,191,36,0.5), 0 0 100px rgba(251,191,36,0.2);
-        border-color: #fbbf24;
-    }
+    0%, 100% { box-shadow: 0 0 20px rgba(52,211,153,0.6), 0 0 40px rgba(52,211,153,0.3); border-color: #34d399; }
+    50% { box-shadow: 0 0 40px rgba(251,191,36,0.9), 0 0 80px rgba(251,191,36,0.5); border-color: #fbbf24; }
 }
 
-/* Pendiente vibra */
 @keyframes pendingPulse {
-    0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(245,158,11,0.5); }
-    25% { transform: scale(1.02) rotate(-1deg); }
-    75% { transform: scale(1.02) rotate(1deg); }
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.02) rotate(-0.8deg); }
+    75% { transform: scale(1.02) rotate(0.8deg); }
 }
 
-/* Extra aura rosa */
 @keyframes extraAura {
     0%, 100% { box-shadow: 0 0 25px rgba(236,72,153,0.6), 0 0 50px rgba(236,72,153,0.3); }
     50% { box-shadow: 0 0 45px rgba(236,72,153,1), 0 0 90px rgba(236,72,153,0.5); }
 }
 
-/* Ganadora explota */
 @keyframes winnerBlast {
     0%, 100% { transform: scale(1); box-shadow: 0 0 50px rgba(251,191,36,0.9), 0 0 100px rgba(251,191,36,0.5); }
     50% { transform: scale(1.12); box-shadow: 0 0 80px rgba(251,191,36,1), 0 0 160px rgba(251,191,36,0.7); }
@@ -780,7 +567,7 @@ body {
 
 @keyframes winnerPop {
     0% { transform: scale(0) rotate(-180deg); }
-    50% { transform: scale(1.2) rotate(10deg); }
+    60% { transform: scale(1.2) rotate(8deg); }
     100% { transform: scale(1) rotate(0); }
 }
 
@@ -792,19 +579,9 @@ body {
     80% { transform: translateX(5px); }
 }
 
-@keyframes sparkle {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.3); }
-}
-
-@keyframes sparkleFloat {
-    from { transform: translateY(0) scale(1); opacity: 1; }
-    to { transform: translateY(-8px) scale(1.2); opacity: 0.7; }
-}
-
-@keyframes confetti-fall {
-    to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-}
+@keyframes sparkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
+@keyframes sparkleFloat { from { transform: translateY(0) scale(1); opacity: 1; } to { transform: translateY(-8px) scale(1.2); opacity: 0.7; } }
+@keyframes confetti-fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
 
 .hidden { display: none !important; }
 
@@ -813,9 +590,10 @@ body {
     .boxes-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
     .main-title { font-size: 2.2em; }
     .jackpot-amount { font-size: 1.8em; }
-    .jackpot-display { padding: 15px 25px; }
+    .jackpot-display { padding: 15px 20px; }
     .pending-transfers { width: 90%; right: 5%; top: 10px; }
-    .btn-win-again, .btn-try-again { font-size: 0.95em; padding: 15px 20px; }
+    .btn-win-again, .btn-try-again { font-size: 0.95em; padding: 15px 18px; }
     .result-title-win, .result-title-lose { font-size: 2em; }
     .prize-amount { font-size: 3em; }
+    .winning-box-reveal { font-size: 1em; padding: 12px 20px; }
 }

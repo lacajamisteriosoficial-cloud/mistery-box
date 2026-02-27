@@ -42,7 +42,7 @@ let gameState = {
     config: {
         entryPrice: 500,
         extraPrice: 1000,
-        minPlayers: 5,
+        minPlayers: 2,
         maxPlayers: 10,
         totalBoxes: 20,
         commissionPercent: 20,
@@ -72,6 +72,7 @@ app.get('/api/state', (req, res) => {
         boxes: gameState.boxes,
         extraBoxes: gameState.extraBoxes,
         jackpot: gameState.jackpot,
+        roundFund: gameState.roundFund,
         countdownEnd: gameState.countdownEnd,
         winner: gameState.winner,
         winningBox: gameState.winningBox,
@@ -245,35 +246,31 @@ function startCountdown() {
 
 function closeRound() {
     gameState.status = 'CLOSED';
-    const confirmedPlayers = gameState.players.filter(p => p.box && p.approved);
-    if (confirmedPlayers.length < gameState.config.minPlayers) {
-        gameState.winningBox = Math.floor(Math.random() * gameState.config.totalBoxes) + 1;
-        gameState.winner = null;
-        gameState.lastPrize = null;
-        gameState.status = 'FINISHED';
-        scheduleAutoReset();
-        return;
-    }
+
+    // SIEMPRE acumular el fondo de la ronda al jackpot (menos comisión) si no hay ganador
+    // No importa cuántos jugadores haya — si el sorteo no cae en una caja elegida, acumula
     setTimeout(() => drawWinner(), 500);
 }
 
 function drawWinner() {
     const winningBox = Math.floor(Math.random() * gameState.config.totalBoxes) + 1;
     gameState.winningBox = winningBox;
+
     const winnerId = gameState.boxes[winningBox] || gameState.extraBoxes[winningBox];
 
     if (winnerId) {
-        // Hay ganador - calcular premio ANTES de resetear jackpot
-        const prize = calculatePrize();
+        // ✅ Hay ganador — calcular premio ANTES de resetear jackpot
+        const commission = gameState.roundFund * (gameState.config.commissionPercent / 100);
+        const prize = (gameState.roundFund - commission) + gameState.jackpot;
         gameState.winner = gameState.players.find(p => p.id === winnerId);
         gameState.winner.prize = prize;
         gameState.lastPrize = prize;
-        gameState.jackpot = 0;
+        gameState.jackpot = 0; // se pagó, va a cero
     } else {
-        // No hay ganador - acumular al pozo
+        // ❌ No hay ganador — ACUMULAR al pozo
         const commission = gameState.roundFund * (gameState.config.commissionPercent / 100);
         const accumulated = gameState.roundFund - commission;
-        gameState.jackpot += accumulated;
+        gameState.jackpot += accumulated; // SE SUMA al jackpot existente
         gameState.lastPrize = null;
         gameState.winner = null;
     }
@@ -283,15 +280,10 @@ function drawWinner() {
 }
 
 function scheduleAutoReset() {
+    // 12 segundos para que los jugadores vean el resultado
     timers.autoReset = setTimeout(() => {
-        resetRound(false); // mantener jackpot acumulado
-    }, 10000);
-}
-
-function calculatePrize() {
-    const totalFund = gameState.roundFund;
-    const commission = totalFund * (gameState.config.commissionPercent / 100);
-    return totalFund - commission + gameState.jackpot;
+        resetRound(false); // false = mantener jackpot acumulado
+    }, 12000);
 }
 
 const PORT = process.env.PORT || 3000;
