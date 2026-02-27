@@ -7,6 +7,29 @@ app.use(cors());
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Protección con contraseña para el panel admin
+app.use('/admin', (req, res, next) => {
+    const auth = req.headers['authorization'];
+
+    if (!auth || !auth.startsWith('Basic ')) {
+        res.set('WWW-Authenticate', 'Basic realm="Admin Panel"');
+        return res.status(401).send('Acceso denegado');
+    }
+
+    const credentials = Buffer.from(auth.split(' ')[1], 'base64').toString();
+    const [user, pass] = credentials.split(':');
+
+    const adminUser = process.env.ADMIN_USER || 'admin';
+    const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
+
+    if (user !== adminUser || pass !== adminPass) {
+        res.set('WWW-Authenticate', 'Basic realm="Admin Panel"');
+        return res.status(401).send('Acceso denegado');
+    }
+
+    next();
+});
 app.use('/admin', express.static(path.join(__dirname, '../admin')));
 
 let gameState = {
@@ -264,7 +287,6 @@ function closeRound() {
     const confirmedPlayers = gameState.players.filter(p => p.box && p.approved);
     
     if (confirmedPlayers.length < gameState.config.minPlayers) {
-        // Sortear igual para mostrar qué caja salió
         gameState.winningBox = Math.floor(Math.random() * gameState.config.totalBoxes) + 1;
         gameState.winner = null;
         gameState.status = 'FINISHED';
