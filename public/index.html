@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎁 Caja Misteriosa</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎁 Caja Misteriosa</h1>
+            <div class="jackpot-display">
+                💰 POZO: $<span id="jackpotAmount">0</span>
+            </div>
+            <p style="margin-top: 10px; opacity: 0.9;">¡Tocá una caja para participar!</p>
+        </div>
+
+        <div id="scheduleClosed" class="schedule-closed hidden">
+            🚫 JUEGO CERRADO - Volvé en el horario habilitado
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div id="statusIndicator" class="status-indicator status-open"></div>
+                <span id="statusText">ESPERANDO JUGADORES</span>
+            </div>
+            <div class="status-item">
+                👥 <span id="playerCount">0</span>/<span id="maxPlayersDisplay">10</span> jugadores
+            </div>
+            <div class="timer-display" id="timerDisplay">--:--</div>
+            <div class="status-item">
+                💵 Entrada: $<span id="entryPriceDisplay">500</span>
+            </div>
+        </div>
+
+        <div class="players-section">
+            <h3>Jugadores en la Sala</h3>
+            <div id="playersList" class="players-list">
+                <p style="opacity: 0.6; width: 100%; text-align: center;">No hay jugadores todavía...</p>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2>Seleccioná tu Caja</h2>
+                <p style="opacity: 0.8; margin-top: 5px;">Tocá una caja para participar. Transferí y esperá la aprobación.</p>
+            </div>
+            
+            <div id="boxesGrid" class="boxes-grid"></div>
+
+            <div class="actions">
+                <button id="confirmBtn" class="btn btn-success hidden" onclick="confirmSelection()">
+                    ✅ Confirmar Elección
+                </button>
+                <button id="extraBtn" class="btn btn-extra hidden" onclick="buyExtraBox()">
+                    ⭐ Comprar Caja Extra ($<span id="extraPrice">1000</span>)
+                </button>
+                <button id="playAgainBtn" class="btn btn-primary hidden" onclick="playAgain()">
+                    🔄 Volver a Jugar
+                </button>
+            </div>
+        </div>
+
+        <div class="rules-section">
+            <h3>📋 Reglas del Juego</h3>
+            <ul>
+                <li>Tocá una caja para empezar</li>
+                <li>Transferí al alias y enviá tu comprobante</li>
+                <li>Una vez aprobado, confirmá tu caja</li>
+                <li>Cuando todos elijan, hay <span id="countdownRule">3</span> segundos y se sortea</li>
+                <li>Si ganás, te llevás el pozo. Si no, podés volver a intentar</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closePaymentModal()">&times;</span>
+            <h2>💸 Reservar Caja</h2>
+            <p>Caja seleccionada: <strong id="selectedBoxNumber">-</strong></p>
+            
+            <div class="alias-box">
+                <p>Enviá $<span id="modalEntryPrice">500</span> a este alias:</p>
+                <div class="alias-text" id="modalAlias">elnomad.mp</div>
+                <button class="btn btn-secondary" style="margin-top: 10px;" onclick="copyAlias()">
+                    📋 Copiar Alias
+                </button>
+            </div>
+
+            <div class="transfer-form">
+                <label>Tu nombre/apodo:</label>
+                <input type="text" id="playerName" placeholder="Ej: JuanPerez123" maxlength="15">
+                
+                <label>Últimos 4 dígitos de operación:</label>
+                <input type="text" id="operationId" placeholder="Ej: 1234" maxlength="10">
+                
+                <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="submitTransfer()">
+                    ✅ Ya Transferí - Reservar Caja
+                </button>
+            </div>
+
+            <p style="margin-top: 15px; font-size: 0.85em; opacity: 0.7; text-align: center;">
+                Tu caja se reservará cuando el operador verifique el pago
+            </p>
+        </div>
+    </div>
+
+    <div id="extraModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeExtraModal()">&times;</span>
+            <h2>⭐ Comprar Caja Extra</h2>
+            <p>Transferí $<span id="extraModalPrice">1000</span> al mismo alias</p>
+            
+            <div class="alias-box" style="margin: 20px 0;">
+                <div class="alias-text" id="extraModalAlias">elnomad.mp</div>
+            </div>
+
+            <input type="text" id="extraOperationId" placeholder="N° de operación" maxlength="10">
+            
+            <button class="btn btn-extra" style="width: 100%; margin-top: 20px;" onclick="submitExtraBox()">
+                ✅ Confirmar Caja Extra
+            </button>
+        </div>
+    </div>
+
+    <div id="resultScreen" class="result-screen">
+        <div class="winner-announcement">🎉</div>
+        <div id="resultTitle">¡Tenemos un Ganador!</div>
+        <div id="resultContent"></div>
+        <button class="btn btn-primary" style="margin-top: 30px;" onclick="playAgain()">
+            🔄 Volver a Jugar
+        </button>
+    </div>
+
+    <script src="js/player.js"></script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎛️ Admin - Caja Misteriosa</title>
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        .admin-badge {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .admin-panel {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid #ef4444;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .admin-title {
+            color: #ef4444;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        .stat-label {
+            font-size: 0.85em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎁 Caja Misteriosa <span class="admin-badge">ADMIN</span></h1>
+            <div class="jackpot-display">
+                💰 POZO: $<span id="jackpotAmount">0</span>
+            </div>
+            <p style="margin-top: 10px; opacity: 0.9;">Panel de Control del Operador</p>
+        </div>
+
+        <div class="admin-panel">
+            <div class="admin-title">
+                <span style="font-size: 1.5em;">📊</span>
+                <h3>Estadísticas de la Ronda</h3>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCollected">$0</div>
+                    <div class="stat-label">Recaudado</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="commission">$0</div>
+                    <div class="stat-label">Comisión</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="pendingCount">0</div>
+                    <div class="stat-label">Pagos Pendientes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="confirmedPlayers">0</div>
+                    <div class="stat-label">Confirmados</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="configPanel" class="config-panel active">
+            <h3>⚙️ Configuración del Juego</h3>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label>Precio Entrada ($)</label>
+                    <input type="number" id="configEntryPrice" value="500">
+                </div>
+                <div class="config-item">
+                    <label>Precio Caja Extra ($)</label>
+                    <input type="number" id="configExtraPrice" value="1000">
+                </div>
+                <div class="config-item">
+                    <label>Mínimo Jugadores</label>
+                    <input type="number" id="configMinPlayers" value="5">
+                </div>
+                <div class="config-item">
+                    <label>Máximo Jugadores</label>
+                    <input type="number" id="configMaxPlayers" value="10">
+                </div>
+                <div class="config-item">
+                    <label>Total Cajas</label>
+                    <input type="number" id="configTotalBoxes" value="20">
+                </div>
+                <div class="config-item">
+                    <label>Comisión (%)</label>
+                    <input type="number" id="configCommission" value="20">
+                </div>
+                <div class="config-item">
+                    <label>Tiempo Cierre (seg)</label>
+                    <input type="number" id="configCloseTime" value="3">
+                </div>
+                <div class="config-item">
+                    <label>Alias MercadoPago</label>
+                    <input type="text" id="configAlias" value="elnomad.mp">
+                </div>
+            </div>
+            
+            <div class="schedule-config">
+                <label>
+                    <input type="checkbox" id="scheduleEnabled"> 
+                    Habilitar horario de juego
+                </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <div>
+                        <label style="font-size: 0.8em;">Abre a (hora)</label>
+                        <input type="number" id="scheduleOpen" value="0" min="0" max="23">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8em;">Cierra a (hora)</label>
+                        <input type="number" id="scheduleClose" value="23" min="0" max="23">
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="saveConfig()">
+                💾 Guardar Configuración
+            </button>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div id="statusIndicator" class="status-indicator status-open"></div>
+                <span id="statusText">ESPERANDO JUGADORES</span>
+            </div>
+            <div class="status-item">
+                👥 <span id="playerCount">0</span>/<span id="maxPlayersDisplay">10</span>
+            </div>
+            <div class="timer-display" id="timerDisplay">--:--</div>
+            <div class="status-item">
+                💵 $<span id="entryPriceDisplay">500</span>
+            </div>
+        </div>
+
+        <div class="players-section">
+            <h3>Jugadores en la Sala</h3>
+            <div id="playersList" class="players-list"></div>
+        </div>
+
+        <div class="game-area">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2>Cajas Seleccionadas</h2>
+            </div>
+            
+            <div id="boxesGrid" class="boxes-grid"></div>
+
+            <div class="actions">
+                <button class="btn btn-success" onclick="forceStart()">
+                    ▶️ Forzar Inicio
+                </button>
+                <button class="btn btn-secondary" onclick="resetGame()">
+                    🔄 Resetear Juego
+                </button>
+                <button class="btn btn-primary" onclick="togglePendingTransfers()">
+                    💰 Ver Pagos (<span id="pendingBadge">0</span>)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pendingTransfers" class="pending-transfers">
+        <h3 style="margin-bottom: 15px; color: var(--accent);">⏳ Pagos Pendientes</h3>
+        <div id="transfersList"></div>
+    </div>
+
+    <div id="resultScreen" class="result-screen">
+        <div class="winner-announcement">🎉</div>
+        <div id="resultTitle">¡Tenemos un Ganador!</div>
+        <div id="resultContent"></div>
+        <button class="btn btn-primary" style="margin-top: 30px;" onclick="nextRound()">
+            🔄 Siguiente Ronda
+        </button>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>
