@@ -21,11 +21,13 @@ let gameState = {
     }
 };
 
+let lastJackpot = 0; // para detectar cuando sube el pozo
+
 document.addEventListener('DOMContentLoaded', () => {
     init();
     startPolling();
 
-    // ── Registrarse como viewer en vivo ──────────────────────────────
+    // Registrarse como viewer en vivo
     const viewerSource = new EventSource('/api/viewers/connect');
     viewerSource.onmessage = (event) => {
         const { viewers } = JSON.parse(event.data);
@@ -33,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el) el.textContent = viewers;
     };
     viewerSource.onerror = () => {};
-});  // ← ESTA LÍNEA FALTABA
+});
 
 function init() {
     renderBoxes();
@@ -53,13 +55,20 @@ async function fetchGameState() {
         const data = await response.json();
 
         const prevStatus = gameState.status;
+        const prevJackpot = lastJackpot;
 
         gameState.status = data.status;
         gameState.players = data.players;
         gameState.boxes = data.boxes;
         gameState.extraBoxes = data.extraBoxes;
         gameState.jackpot = data.jackpot;
-        gameState.config = {...gameState.config, ...data.config};
+        gameState.config = { ...gameState.config, ...data.config };
+
+        // Lluvia de monedas cuando el pozo sube
+        if (data.jackpot > prevJackpot && prevJackpot > 0) {
+            spawnCoinRain();
+        }
+        lastJackpot = data.jackpot;
 
         if (!data.inSchedule) {
             document.getElementById('scheduleClosed').classList.remove('hidden');
@@ -96,7 +105,7 @@ async function fetchGameState() {
             const updatedPlayer = gameState.players.find(p => p.id === gameState.currentPlayer.id);
             if (updatedPlayer && updatedPlayer.approved) {
                 gameState.currentPlayer = updatedPlayer;
-                showNotification('¡Pago aprobado! Confirmá tu caja 🎁', 'success');
+                showNotification('¡Pago aprobado! Confirmá tu caja ✓', 'success');
                 document.getElementById('confirmBtn').classList.remove('hidden');
             }
         }
@@ -115,6 +124,30 @@ async function fetchGameState() {
     }
 }
 
+// ── Lluvia de monedas sobre el Gran Pozo ─────────────────────────────
+function spawnCoinRain() {
+    const container = document.getElementById('coinRainContainer');
+    if (!container) return;
+    const count = 22;
+    for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+            const coin = document.createElement('div');
+            coin.className = 'coin-drop';
+            coin.style.left = (28 + Math.random() * 44) + '%';
+            coin.style.top = '-30px';
+            const dur = (Math.random() * 0.8 + 1.4).toFixed(2);
+            coin.style.animationDuration = dur + 's';
+            const size = Math.round(Math.random() * 8 + 20);
+            coin.style.width = size + 'px';
+            coin.style.height = size + 'px';
+            coin.style.fontSize = Math.round(size * 0.42) + 'px';
+            container.appendChild(coin);
+            setTimeout(() => coin.remove(), parseFloat(dur) * 1000 + 200);
+        }, i * 65);
+    }
+}
+
+// ── Renderizado de cajas 3D ───────────────────────────────────────────
 function renderBoxes() {
     const grid = document.getElementById('boxesGrid');
     grid.innerHTML = '';
@@ -123,11 +156,24 @@ function renderBoxes() {
         const box = document.createElement('div');
         box.className = 'box';
         box.dataset.number = i;
+
+        // Número formateado (sin #, solo el número bien visible)
+        const numLabel = String(i).padStart(2, '0');
+
         box.innerHTML = `
-            <div class="box-number">${i}</div>
-            <div class="box-icon">🎁</div>
+            <div class="box-3d">
+                <div class="box-lid-3d"><div class="box-bow"></div></div>
+                <div class="box-body-3d">
+                    <div class="box-interior-3d">
+                        <span style="font-size:2em;font-weight:900;color:#fff;
+                            text-shadow:0 0 20px rgba(255,255,255,1),0 0 40px rgba(255,215,0,1);">?</span>
+                    </div>
+                </div>
+            </div>
+            <div class="box-number">${numLabel}</div>
         `;
 
+        // Estados
         if (gameState.boxes[i]) {
             box.classList.add('taken');
             const player = gameState.players.find(p => p.id === gameState.boxes[i]);
@@ -155,6 +201,7 @@ function renderBoxes() {
             box.classList.add(gameState.winner ? 'winner' : 'empty-winner');
         }
 
+        // Float solo en cajas libres
         const isFree = !gameState.boxes[i] && !gameState.extraBoxes[i] &&
             !(gameState.currentPlayer && gameState.currentPlayer.selectedBox === i) &&
             !(gameState.currentPlayer && gameState.currentPlayer.box === i);
@@ -274,7 +321,7 @@ async function submitTransfer() {
     try {
         const response = await fetch(`${API_URL}/request-entry`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, operationId, boxNumber: gameState.selectedBox })
         });
         if (response.ok) {
@@ -297,14 +344,14 @@ async function confirmSelection() {
     try {
         const response = await fetch(`${API_URL}/confirm-box`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ playerId: gameState.currentPlayer.id, boxNumber: gameState.selectedBox })
         });
         if (response.ok) {
             gameState.currentPlayer.box = gameState.selectedBox;
             document.getElementById('confirmBtn').classList.add('hidden');
             document.getElementById('extraBtn').classList.remove('hidden');
-            showNotification('¡Caja confirmada! 🎁', 'success');
+            showNotification('¡Caja confirmada! ✓', 'success');
             await fetchGameState();
         } else {
             const error = await response.json();
@@ -319,7 +366,7 @@ async function submitExtraBoxSelection(boxNumber) {
     try {
         const response = await fetch(`${API_URL}/select-extra-box`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ playerId: gameState.currentPlayer.id, boxNumber })
         });
         if (response.ok) {
@@ -352,7 +399,7 @@ async function submitExtraBox() {
     try {
         const response = await fetch(`${API_URL}/request-extra`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ playerId: gameState.currentPlayer.id, operationId })
         });
         if (response.ok) {
@@ -389,7 +436,7 @@ function showResult(winner, winningBox, prize, jackpotAfter) {
     const newJackpot = jackpotAfter || 0;
 
     const winBoxInfo = winningBox
-        ? `<div class="winning-box-reveal">🎰 La caja ganadora era la <span class="winning-box-number">#${winningBox}</span></div>`
+        ? `<div class="winning-box-reveal">La caja ganadora era la <span class="winning-box-number">#${winningBox}</span></div>`
         : '';
 
     if (winner) {
@@ -433,7 +480,7 @@ function showResult(winner, winningBox, prize, jackpotAfter) {
 }
 
 function createConfetti() {
-    const colors = ['#fbbf24','#f59e0b','#10b981','#6366f1','#ec4899','#ef4444','#fff'];
+    const colors = ['#ffd700','#f59e0b','#10b981','#6366f1','#ec4899','#ef4444','#fff'];
     for (let i = 0; i < 120; i++) {
         const c = document.createElement('div');
         c.className = 'confetti';
@@ -456,10 +503,11 @@ function showNotification(message, type = 'info') {
         position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
         padding: 15px 30px; border-radius: 30px; color: white; font-weight: bold;
         z-index: 9999; animation: fadeInDown 0.3s ease; max-width: 90%; text-align: center;
-        ${type === 'error' ? 'background: #ef4444;' :
+        font-family: 'Exo 2', sans-serif;
+        ${type === 'error'   ? 'background: #ef4444;' :
           type === 'success' ? 'background: #10b981;' :
           type === 'warning' ? 'background: #f59e0b; color: #1f2937;' :
-          'background: #6366f1;'}
+                               'background: #6366f1;'}
     `;
     toast.textContent = message;
     document.body.appendChild(toast);

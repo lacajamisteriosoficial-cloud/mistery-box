@@ -10,49 +10,49 @@
 
 <canvas id="particlesCanvas"></canvas>
 
-<!-- SVG defs reutilizables globalmente -->
-<svg width="0" height="0" style="position:absolute;overflow:hidden">
-  <defs>
-    <symbol id="icon-gift" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="6" y="22" width="36" height="22" rx="3" fill="currentColor" opacity="0.9"/>
-      <rect x="4" y="14" width="40" height="10" rx="2.5" fill="currentColor"/>
-      <rect x="21" y="14" width="6" height="30" rx="2" fill="white" opacity="0.35"/>
-      <rect x="4" y="17" width="40" height="4" rx="2" fill="white" opacity="0.2"/>
-      <path d="M24 14 C24 14 14 8 14 4 C14 2 16 1 18 2 C20 3 24 14 24 14Z" fill="white" opacity="0.5"/>
-      <path d="M24 14 C24 14 34 8 34 4 C34 2 32 1 30 2 C28 3 24 14 24 14Z" fill="white" opacity="0.5"/>
-    </symbol>
-  </defs>
-</svg>
-
 <div class="container">
+
+    <!-- ── HEADER ── -->
     <div class="header">
         <h1 class="main-title">
-            <svg class="title-icon" viewBox="0 0 48 48"><use href="#icon-gift"/></svg>
+            <svg class="title-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="6" y="22" width="36" height="22" rx="3" fill="currentColor" opacity="0.9"/>
+                <rect x="4" y="14" width="40" height="10" rx="2.5" fill="currentColor"/>
+                <rect x="21" y="14" width="6" height="30" rx="2" fill="white" opacity="0.35"/>
+                <rect x="4" y="17" width="40" height="4" rx="2" fill="white" opacity="0.2"/>
+                <path d="M24 14 C24 14 14 8 14 4 C14 2 16 1 18 2 C20 3 24 14 24 14Z" fill="white" opacity="0.5"/>
+                <path d="M24 14 C24 14 34 8 34 4 C34 2 32 1 30 2 C28 3 24 14 24 14Z" fill="white" opacity="0.5"/>
+            </svg>
             <span class="main-title-text">Caja Misteriosa</span>
         </h1>
+    </div>
 
-        <!-- JACKPOT CASINO DISPLAY -->
-        <div class="jackpot-casino">
-            <div class="jackpot-label-top">POZO ACUMULADO</div>
-            <div class="jackpot-screen">
-                <div class="jackpot-screen-inner">
-                    <span class="jackpot-currency">$</span>
-                    <span class="jackpot-amount" id="jackpotAmount">0</span>
-                </div>
-                <div class="jackpot-scanline"></div>
+    <!-- ── GRAN POZO CASINO ── -->
+    <div class="jackpot-casino" id="jackpotCasino">
+        <!-- Contenedor de lluvia de monedas -->
+        <div class="coin-rain-container" id="coinRainContainer"></div>
+
+        <div class="jackpot-label-top">GRAN POZO</div>
+        <div class="jackpot-screen">
+            <div class="jackpot-screen-inner">
+                <span class="jackpot-currency">$</span>
+                <span class="jackpot-amount" id="jackpotAmount">0</span>
             </div>
-            <div class="jackpot-decorline">
-                <span></span><span></span><span></span><span></span><span></span>
-            </div>
+            <div class="jackpot-scanline"></div>
         </div>
+        <div class="jackpot-decorline">
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+    </div>
 
-        <div style="text-align:center; margin: 8px 0;">
+    <!-- Badge viewers + sub -->
+    <div class="header" style="margin-bottom:20px;">
+        <div style="text-align:center; margin: 4px 0;">
             <div class="live-badge-public">
                 <span class="live-dot-public"></span>
                 <span id="publicViewerCount">0</span> viendo en vivo
             </div>
         </div>
-
         <p class="header-sub">✨ ¡Tocá una caja para participar! ✨</p>
     </div>
 
@@ -60,6 +60,7 @@
         🚫 JUEGO CERRADO - Volvé en el horario habilitado
     </div>
 
+    <!-- ── STATUS BAR ── -->
     <div class="status-bar">
         <div class="status-item">
             <div id="statusIndicator" class="status-indicator status-open"></div>
@@ -74,6 +75,7 @@
         </div>
     </div>
 
+    <!-- ── JUGADORES ── -->
     <div class="players-section">
         <h3>🎮 Jugadores en la Sala</h3>
         <div id="playersList" class="players-list">
@@ -81,11 +83,19 @@
         </div>
     </div>
 
+    <!-- ── GAME AREA ── -->
     <div class="game-area">
         <div style="display:flex; justify-content:center; margin-bottom: 20px;">
             <div style="text-align:center;">
-                <h2 class="main-title" style="margin-bottom:0; font-size:2.4em;">
-                    <svg class="title-icon" viewBox="0 0 48 48"><use href="#icon-gift"/></svg>
+                <h2 class="main-title" style="font-size:2.2em; margin-bottom:0;">
+                    <svg class="title-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="6" y="22" width="36" height="22" rx="3" fill="currentColor" opacity="0.9"/>
+                        <rect x="4" y="14" width="40" height="10" rx="2.5" fill="currentColor"/>
+                        <rect x="21" y="14" width="6" height="30" rx="2" fill="white" opacity="0.35"/>
+                        <rect x="4" y="17" width="40" height="4" rx="2" fill="white" opacity="0.2"/>
+                        <path d="M24 14 C24 14 14 8 14 4 C14 2 16 1 18 2 C20 3 24 14 24 14Z" fill="white" opacity="0.5"/>
+                        <path d="M24 14 C24 14 34 8 34 4 C34 2 32 1 30 2 C28 3 24 14 24 14Z" fill="white" opacity="0.5"/>
+                    </svg>
                     <span class="main-title-text">Seleccioná tu Caja</span>
                 </h2>
                 <p style="opacity: 0.8; margin-top: 8px;">
@@ -109,6 +119,7 @@
         </div>
     </div>
 
+    <!-- ── REGLAS ── -->
     <div class="rules-section">
         <h3>📋 Reglas del Juego</h3>
         <ul>
@@ -121,6 +132,7 @@
     </div>
 </div>
 
+<!-- ── MODAL PAGO ── -->
 <div id="paymentModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closePaymentModal()">&times;</span>
@@ -146,6 +158,7 @@
     </div>
 </div>
 
+<!-- ── MODAL EXTRA ── -->
 <div id="extraModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeExtraModal()">&times;</span>
@@ -161,6 +174,7 @@
     </div>
 </div>
 
+<!-- ── PANTALLA RESULTADO ── -->
 <div id="resultScreen" class="result-screen">
     <div class="winner-announcement">🎉</div>
     <div id="resultTitle">¡Tenemos un Ganador!</div>
@@ -173,24 +187,7 @@
 <script src="js/player.js"></script>
 
 <script>
-// ── SVG gift: reemplaza emojis 🎁 en .box-icon generados por player.js ──
-const giftSVG = `<svg class="box-svg-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><use href="#icon-gift"/></svg>`;
-
-function replaceGiftEmojis(root) {
-    (root || document).querySelectorAll('.box-icon').forEach(el => {
-        if (el.textContent.trim() === '🎁') el.innerHTML = giftSVG;
-    });
-}
-
-const gridEl = document.getElementById('boxesGrid');
-if (gridEl) {
-    new MutationObserver(() => {
-        replaceGiftEmojis(gridEl);
-        addBoxFloatEffect();
-    }).observe(gridEl, { childList: true, subtree: true });
-}
-
-// ── Partículas ────────────────────────────────────────────────────────
+// ── Partículas de fondo ───────────────────────────────────────────────
 const canvas = document.getElementById('particlesCanvas');
 const ctx = canvas.getContext('2d');
 let particles = [];
@@ -202,13 +199,13 @@ window.addEventListener('resize', resizeCanvas);
 function createParticle() {
     return {
         x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-        size: Math.random() * 3 + 1,
-        speedX: (Math.random() - 0.5) * 0.4, speedY: (Math.random() - 0.5) * 0.4,
-        opacity: Math.random() * 0.5 + 0.1,
-        color: `hsl(${Math.random() * 60 + 200}, 80%, 70%)`
+        size: Math.random() * 2.5 + 0.8,
+        speedX: (Math.random() - 0.5) * 0.35, speedY: (Math.random() - 0.5) * 0.35,
+        opacity: Math.random() * 0.4 + 0.1,
+        color: `hsl(${Math.random() * 60 + 200}, 70%, 65%)`
     };
 }
-for (let i = 0; i < 80; i++) particles.push(createParticle());
+for (let i = 0; i < 70; i++) particles.push(createParticle());
 
 function animateParticles() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -219,26 +216,23 @@ function animateParticles() {
         ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = p.color; ctx.globalAlpha = p.opacity; ctx.fill();
     });
-    ctx.globalAlpha = 0.08; ctx.strokeStyle = '#a5b4fc'; ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.06; ctx.strokeStyle = '#a5b4fc'; ctx.lineWidth = 0.8;
     for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
             const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist < 120) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke(); }
+            if (Math.sqrt(dx*dx + dy*dy) < 110) {
+                ctx.beginPath();
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.stroke();
+            }
         }
     }
     ctx.globalAlpha = 1;
     requestAnimationFrame(animateParticles);
 }
 animateParticles();
-
-// ── Float en cajas ────────────────────────────────────────────────────
-function addBoxFloatEffect() {
-    document.querySelectorAll('.box:not(.taken):not(.selected):not(.pending)').forEach((box, i) => {
-        box.style.animationDelay = `${(i * 0.15) % 2}s`;
-        box.classList.add('floating');
-    });
-}
 </script>
+
 </body>
 </html>
