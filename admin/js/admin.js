@@ -28,6 +28,7 @@ let gameState = {
 document.addEventListener('DOMContentLoaded', () => {
     init();
     startPolling();
+    initViewerStream();
 });
 
 function init() {
@@ -35,6 +36,71 @@ function init() {
     updateDisplay();
     updateConfigDisplay();
 }
+
+// ── Viewer Stream ────────────────────────────────────────────────────
+function initViewerStream() {
+    const viewerStream = new EventSource('/api/viewers/admin-stream');
+
+    viewerStream.onmessage = (event) => {
+        const { viewers } = JSON.parse(event.data);
+
+        // Actualizar número en el badge
+        const countEl = document.getElementById('viewerCount');
+        if (countEl) countEl.textContent = viewers;
+
+        const badge = document.querySelector('.live-badge-admin');
+        if (!badge) return;
+
+        if (viewers === 0) {
+            // Badge rojo intenso
+            badge.style.background = 'rgba(239,68,68,0.35)';
+            badge.style.borderColor = 'rgba(239,68,68,0.9)';
+
+            // Mostrar alerta y banner solo la primera vez que llega a 0
+            if (!badge.dataset.alertShown) {
+                badge.dataset.alertShown = 'true';
+                showNotification('⚠️ No hay espectadores — podés cerrar el pozo', 'warning');
+
+                // Banner persistente abajo al centro
+                if (!document.getElementById('noViewersBanner')) {
+                    const banner = document.createElement('div');
+                    banner.id = 'noViewersBanner';
+                    banner.style.cssText = `
+                        position: fixed;
+                        bottom: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: linear-gradient(135deg, #7f1d1d, #ef4444);
+                        color: white;
+                        padding: 14px 28px;
+                        border-radius: 12px;
+                        font-weight: bold;
+                        font-size: 1em;
+                        z-index: 9999;
+                        border: 2px solid rgba(255,255,255,0.3);
+                        box-shadow: 0 0 25px rgba(239,68,68,0.6);
+                        animation: blink 1.5s infinite;
+                        text-align: center;
+                        white-space: nowrap;
+                    `;
+                    banner.innerHTML = '👁️ Sin espectadores en vivo — Pozo aún abierto';
+                    document.body.appendChild(banner);
+                }
+            }
+        } else {
+            // Volvió alguien — resetear todo
+            badge.style.background = 'rgba(239,68,68,0.15)';
+            badge.style.borderColor = 'rgba(239,68,68,0.5)';
+            badge.dataset.alertShown = '';
+
+            const banner = document.getElementById('noViewersBanner');
+            if (banner) banner.remove();
+        }
+    };
+
+    viewerStream.onerror = () => {}; // reconecta automáticamente
+}
+// ─────────────────────────────────────────────────────────────────────
 
 function startPolling() {
     setInterval(async () => {
@@ -60,7 +126,6 @@ async function fetchGameState() {
         updateStats();
         updatePendingBadge();
 
-        // Mostrar resultado como sección informativa (no modal)
         if (gameState.status === 'FINISHED') {
             showResultInfo(data.winner, data.winningBox, data.prize);
         } else {
@@ -85,7 +150,6 @@ function showResultInfo(winner, winningBox, prize) {
             font-size: 1.1em;
             border: 2px solid;
         `;
-        // Insertar al inicio del body o en un contenedor principal
         document.body.insertBefore(infoDiv, document.body.firstChild);
     }
 
@@ -381,7 +445,7 @@ function showNotification(message, type = 'info') {
         animation: fadeInDown 0.3s ease;
         ${type === 'error' ? 'background: #ef4444;' : 
           type === 'success' ? 'background: #10b981;' : 
-          type === 'warning' ? 'background: #f59e0b;' :
+          type === 'warning' ? 'background: #f59e0b; color: #1f2937;' :
           'background: #6366f1;'}
     `;
     toast.textContent = message;

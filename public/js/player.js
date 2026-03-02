@@ -24,6 +24,11 @@ let gameState = {
 document.addEventListener('DOMContentLoaded', () => {
     init();
     startPolling();
+
+    // ── Registrarse como viewer en vivo ──────────────────────────────
+    const viewerSource = new EventSource('/api/viewers/connect');
+    viewerSource.onerror = () => {}; // silenciar errores de reconexión
+    // ─────────────────────────────────────────────────────────────────
 });
 
 function init() {
@@ -66,14 +71,12 @@ async function fetchGameState() {
         renderBoxes();
         updateStatus(gameState.status);
 
-        // Mostrar resultado UNA sola vez — solo cuando cambia a FINISHED
         if (gameState.status === 'FINISHED' && !gameState.resultShown) {
             gameState.resultShown = true;
             gameState.waitingForNewRound = true;
             showResult(data.winner, data.winningBox, data.prize, data.jackpot);
         }
 
-        // El servidor reseteó — nueva ronda
         if (prevStatus === 'FINISHED' && gameState.status === 'OPEN') {
             gameState.resultShown = false;
             gameState.waitingForNewRound = false;
@@ -85,7 +88,6 @@ async function fetchGameState() {
             document.getElementById('resultScreen').classList.remove('active');
         }
 
-        // Pago de entrada aprobado
         if (gameState.currentPlayer && !gameState.currentPlayer.approved) {
             const updatedPlayer = gameState.players.find(p => p.id === gameState.currentPlayer.id);
             if (updatedPlayer && updatedPlayer.approved) {
@@ -95,7 +97,6 @@ async function fetchGameState() {
             }
         }
 
-        // Caja extra aprobada
         if (gameState.currentPlayer && gameState.currentPlayer.approved && gameState.currentPlayer.box) {
             const updatedPlayer = gameState.players.find(p => p.id === gameState.currentPlayer.id);
             if (updatedPlayer && updatedPlayer.hasExtra && !gameState.currentPlayer.hasExtra) {
@@ -150,7 +151,6 @@ function renderBoxes() {
             box.classList.add(gameState.winner ? 'winner' : 'empty-winner');
         }
 
-        // Efecto flotante en cajas libres
         const isFree = !gameState.boxes[i] && !gameState.extraBoxes[i] &&
             !(gameState.currentPlayer && gameState.currentPlayer.selectedBox === i) &&
             !(gameState.currentPlayer && gameState.currentPlayer.box === i);
@@ -384,7 +384,6 @@ function showResult(winner, winningBox, prize, jackpotAfter) {
     const iWon = myPlayer && winner && winner.id === myPlayer.id;
     const newJackpot = jackpotAfter || 0;
 
-    // Info de la caja ganadora siempre visible
     const winBoxInfo = winningBox
         ? `<div class="winning-box-reveal">🎰 La caja ganadora era la <span class="winning-box-number">#${winningBox}</span></div>`
         : '';

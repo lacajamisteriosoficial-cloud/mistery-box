@@ -58,6 +58,62 @@ let gameState = {
 
 let timers = {};
 
+// ── Viewer Tracker (SSE) ─────────────────────────────────────────────
+let viewerConnections = [];
+let adminViewerStreams = [];
+
+function broadcastViewerCount() {
+    const count = viewerConnections.length;
+    const payload = `data: ${JSON.stringify({ viewers: count })}\n\n`;
+    adminViewerStreams.forEach(res => {
+        try { res.write(payload); } catch(e) {}
+    });
+}
+
+// El público se conecta aquí — cada pestaña abierta cuenta como 1 viewer
+app.get('/api/viewers/connect', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    viewerConnections.push(res);
+    broadcastViewerCount();
+
+    // Heartbeat cada 25s para que Render no cierre la conexión
+    const heartbeat = setInterval(() => {
+        try { res.write(': ping\n\n'); } catch(e) {}
+    }, 25000);
+
+    req.on('close', () => {
+        clearInterval(heartbeat);
+        viewerConnections = viewerConnections.filter(c => c !== res);
+        broadcastViewerCount();
+    });
+});
+
+// El admin escucha el contador en tiempo real
+app.get('/api/viewers/admin-stream', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    // Enviar el conteo actual al conectarse
+    res.write(`data: ${JSON.stringify({ viewers: viewerConnections.length })}\n\n`);
+    adminViewerStreams.push(res);
+
+    const heartbeat = setInterval(() => {
+        try { res.write(': ping\n\n'); } catch(e) {}
+    }, 25000);
+
+    req.on('close', () => {
+        clearInterval(heartbeat);
+        adminViewerStreams = adminViewerStreams.filter(c => c !== res);
+    });
+});
+// ─────────────────────────────────────────────────────────────────────
+
 function isWithinSchedule() {
     if (!gameState.config.schedule.enabled) return true;
     const now = new Date();
@@ -246,9 +302,6 @@ function startCountdown() {
 
 function closeRound() {
     gameState.status = 'CLOSED';
-
-    // SIEMPRE acumular el fondo de la ronda al jackpot (menos comisión) si no hay ganador
-    // No importa cuántos jugadores haya — si el sorteo no cae en una caja elegida, acumula
     setTimeout(() => drawWinner(), 500);
 }
 
@@ -259,18 +312,16 @@ function drawWinner() {
     const winnerId = gameState.boxes[winningBox] || gameState.extraBoxes[winningBox];
 
     if (winnerId) {
-        // ✅ Hay ganador — calcular premio ANTES de resetear jackpot
         const commission = gameState.roundFund * (gameState.config.commissionPercent / 100);
         const prize = (gameState.roundFund - commission) + gameState.jackpot;
         gameState.winner = gameState.players.find(p => p.id === winnerId);
         gameState.winner.prize = prize;
         gameState.lastPrize = prize;
-        gameState.jackpot = 0; // se pagó, va a cero
+        gameState.jackpot = 0;
     } else {
-        // ❌ No hay ganador — ACUMULAR al pozo
         const commission = gameState.roundFund * (gameState.config.commissionPercent / 100);
         const accumulated = gameState.roundFund - commission;
-        gameState.jackpot += accumulated; // SE SUMA al jackpot existente
+        gameState.jackpot += accumulated;
         gameState.lastPrize = null;
         gameState.winner = null;
     }
@@ -280,9 +331,8 @@ function drawWinner() {
 }
 
 function scheduleAutoReset() {
-    // 12 segundos para que los jugadores vean el resultado
     timers.autoReset = setTimeout(() => {
-        resetRound(false); // false = mantener jackpot acumulado
+        resetRound(false);
     }, 12000);
 }
 
