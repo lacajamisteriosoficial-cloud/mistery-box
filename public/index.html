@@ -3,24 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎁 Caja Misteriosa</title>
+    <title>Caja Misteriosa</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<!-- Canvas de partículas de fondo -->
 <canvas id="particlesCanvas"></canvas>
+
+<!-- SVG defs reutilizables globalmente -->
+<svg width="0" height="0" style="position:absolute;overflow:hidden">
+  <defs>
+    <symbol id="icon-gift" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="6" y="22" width="36" height="22" rx="3" fill="currentColor" opacity="0.9"/>
+      <rect x="4" y="14" width="40" height="10" rx="2.5" fill="currentColor"/>
+      <rect x="21" y="14" width="6" height="30" rx="2" fill="white" opacity="0.35"/>
+      <rect x="4" y="17" width="40" height="4" rx="2" fill="white" opacity="0.2"/>
+      <path d="M24 14 C24 14 14 8 14 4 C14 2 16 1 18 2 C20 3 24 14 24 14Z" fill="white" opacity="0.5"/>
+      <path d="M24 14 C24 14 34 8 34 4 C34 2 32 1 30 2 C28 3 24 14 24 14Z" fill="white" opacity="0.5"/>
+    </symbol>
+  </defs>
+</svg>
 
 <div class="container">
     <div class="header">
-        <h1 class="main-title">🎁 <span class="main-title-text">Caja Misteriosa</span></h1>
-        <div class="jackpot-display">
-            <span class="jackpot-icon">💰</span>
-            <span class="jackpot-label">POZO</span>
-            <span class="jackpot-amount">$<span id="jackpotAmount">0</span></span>
+        <h1 class="main-title">
+            <svg class="title-icon" viewBox="0 0 48 48"><use href="#icon-gift"/></svg>
+            <span class="main-title-text">Caja Misteriosa</span>
+        </h1>
+
+        <!-- JACKPOT CASINO DISPLAY -->
+        <div class="jackpot-casino">
+            <div class="jackpot-label-top">POZO ACUMULADO</div>
+            <div class="jackpot-screen">
+                <div class="jackpot-screen-inner">
+                    <span class="jackpot-currency">$</span>
+                    <span class="jackpot-amount" id="jackpotAmount">0</span>
+                </div>
+                <div class="jackpot-scanline"></div>
+            </div>
+            <div class="jackpot-decorline">
+                <span></span><span></span><span></span><span></span><span></span>
+            </div>
         </div>
 
-        <!-- badge centrado -->
         <div style="text-align:center; margin: 8px 0;">
             <div class="live-badge-public">
                 <span class="live-dot-public"></span>
@@ -57,12 +82,13 @@
     </div>
 
     <div class="game-area">
-
-        <!-- titulo centrado correctamente -->
         <div style="display:flex; justify-content:center; margin-bottom: 20px;">
             <div style="text-align:center;">
-                <h2 class="main-title">🎁 <span class="main-title-text">Seleccioná tu Caja</span></h2>
-                <p style="opacity: 0.8; margin-top: 5px;">
+                <h2 class="main-title" style="margin-bottom:0; font-size:2.4em;">
+                    <svg class="title-icon" viewBox="0 0 48 48"><use href="#icon-gift"/></svg>
+                    <span class="main-title-text">Seleccioná tu Caja</span>
+                </h2>
+                <p style="opacity: 0.8; margin-top: 8px;">
                     Tocá una caja para participar. Transferí y esperá la aprobación.
                 </p>
             </div>
@@ -100,27 +126,20 @@
         <span class="close-btn" onclick="closePaymentModal()">&times;</span>
         <h2>💸 Reservar Caja</h2>
         <p>Caja seleccionada: <strong id="selectedBoxNumber">-</strong></p>
-
         <div class="alias-box">
             <p>Enviá $<span id="modalEntryPrice">500</span> a este alias:</p>
             <div class="alias-text" id="modalAlias">elnomad.mp</div>
-            <button class="btn btn-secondary" style="margin-top: 10px;" onclick="copyAlias()">
-                📋 Copiar Alias
-            </button>
+            <button class="btn btn-secondary" style="margin-top: 10px;" onclick="copyAlias()">📋 Copiar Alias</button>
         </div>
-
         <div class="transfer-form">
             <label>Tu nombre/apodo:</label>
             <input type="text" id="playerName" placeholder="Ej: JuanPerez123" maxlength="15">
-
             <label>Últimos 4 dígitos de operación:</label>
             <input type="text" id="operationId" placeholder="Ej: 1234" maxlength="10">
-
             <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="submitTransfer()">
                 ✅ Ya Transferí - Reservar Caja
             </button>
         </div>
-
         <p style="margin-top: 15px; font-size: 0.85em; opacity: 0.7; text-align: center;">
             Tu caja se reservará cuando el operador verifique el pago
         </p>
@@ -132,13 +151,10 @@
         <span class="close-btn" onclick="closeExtraModal()">&times;</span>
         <h2>⭐ Comprar Caja Extra</h2>
         <p>Transferí $<span id="extraModalPrice">1000</span> al mismo alias</p>
-
         <div class="alias-box" style="margin: 20px 0;">
             <div class="alias-text" id="extraModalAlias">elnomad.mp</div>
         </div>
-
         <input type="text" id="extraOperationId" placeholder="N° de operación" maxlength="10">
-
         <button class="btn btn-extra" style="width: 100%; margin-top: 20px;" onclick="submitExtraBox()">
             ✅ Confirmar Caja Extra
         </button>
@@ -157,84 +173,72 @@
 <script src="js/player.js"></script>
 
 <script>
-// ── Partículas de fondo ──────────────────────────────────────────────
+// ── SVG gift: reemplaza emojis 🎁 en .box-icon generados por player.js ──
+const giftSVG = `<svg class="box-svg-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><use href="#icon-gift"/></svg>`;
+
+function replaceGiftEmojis(root) {
+    (root || document).querySelectorAll('.box-icon').forEach(el => {
+        if (el.textContent.trim() === '🎁') el.innerHTML = giftSVG;
+    });
+}
+
+const gridEl = document.getElementById('boxesGrid');
+if (gridEl) {
+    new MutationObserver(() => {
+        replaceGiftEmojis(gridEl);
+        addBoxFloatEffect();
+    }).observe(gridEl, { childList: true, subtree: true });
+}
+
+// ── Partículas ────────────────────────────────────────────────────────
 const canvas = document.getElementById('particlesCanvas');
 const ctx = canvas.getContext('2d');
 let particles = [];
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
 function createParticle() {
     return {
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
+        x: Math.random() * canvas.width, y: Math.random() * canvas.height,
         size: Math.random() * 3 + 1,
-        speedX: (Math.random() - 0.5) * 0.4,
-        speedY: (Math.random() - 0.5) * 0.4,
+        speedX: (Math.random() - 0.5) * 0.4, speedY: (Math.random() - 0.5) * 0.4,
         opacity: Math.random() * 0.5 + 0.1,
         color: `hsl(${Math.random() * 60 + 200}, 80%, 70%)`
     };
 }
-
 for (let i = 0; i < 80; i++) particles.push(createParticle());
 
 function animateParticles() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     particles.forEach(p => {
-        p.x += p.speedX;
-        p.y += p.speedY;
+        p.x += p.speedX; p.y += p.speedY;
         if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
         if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.opacity;
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color; ctx.globalAlpha = p.opacity; ctx.fill();
     });
-
-    ctx.globalAlpha = 0.08;
-    ctx.strokeStyle = '#a5b4fc';
-    ctx.lineWidth = 1;
-
+    ctx.globalAlpha = 0.08; ctx.strokeStyle = '#a5b4fc'; ctx.lineWidth = 1;
     for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
-            const dx = particles[i].x - particles[j].x;
-            const dy = particles[i].y - particles[j].y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 120) {
-                ctx.beginPath();
-                ctx.moveTo(particles[i].x, particles[i].y);
-                ctx.lineTo(particles[j].x, particles[j].y);
-                ctx.stroke();
-            }
+            const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < 120) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke(); }
         }
     }
-
     ctx.globalAlpha = 1;
     requestAnimationFrame(animateParticles);
 }
-
 animateParticles();
 
-// ── Efecto flotante en las cajas ─────────────────────────────────────
+// ── Float en cajas ────────────────────────────────────────────────────
 function addBoxFloatEffect() {
-    const boxes = document.querySelectorAll('.box:not(.taken):not(.selected):not(.pending)');
-    boxes.forEach((box, i) => {
+    document.querySelectorAll('.box:not(.taken):not(.selected):not(.pending)').forEach((box, i) => {
         box.style.animationDelay = `${(i * 0.15) % 2}s`;
         box.classList.add('floating');
     });
 }
-
-const observer = new MutationObserver(addBoxFloatEffect);
-const grid = document.getElementById('boxesGrid');
-if (grid) observer.observe(grid, { childList: true });
-
 </script>
-
 </body>
 </html>
