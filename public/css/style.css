@@ -52,7 +52,7 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 0 20px rgba(251,191,36,0.4));
+    text-shadow: 0 0 20px rgba(251,191,36,0.4);
     margin-bottom: 15px;
     letter-spacing: 2px;
 }
@@ -596,4 +596,32 @@ body {
     .result-title-win, .result-title-lose { font-size: 2em; }
     .prize-amount { font-size: 3em; }
     .winning-box-reveal { font-size: 1em; padding: 12px 20px; }
+    .live-badge-public {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.5);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: white;
+    margin: 8px 0;
+}
+
+.live-dot-public {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 6px #ef4444;
+    animation: livePulse 1.2s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+@keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.4); }
+}
 }

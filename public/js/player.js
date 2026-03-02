@@ -27,9 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Registrarse como viewer en vivo ──────────────────────────────
     const viewerSource = new EventSource('/api/viewers/connect');
-    viewerSource.onerror = () => {}; // silenciar errores de reconexión
-    // ─────────────────────────────────────────────────────────────────
-});
+viewerSource.onmessage = (event) => {
+    const { viewers } = JSON.parse(event.data);
+    const el = document.getElementById('publicViewerCount');
+    if (el) el.textContent = viewers;
+};
+viewerSource.onerror = () => {};
 
 function init() {
     renderBoxes();

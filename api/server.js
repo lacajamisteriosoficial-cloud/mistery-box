@@ -68,6 +68,10 @@ function broadcastViewerCount() {
     adminViewerStreams.forEach(res => {
         try { res.write(payload); } catch(e) {}
     });
+    // También notificar al público
+    viewerConnections.forEach(res => {
+        try { res.write(payload); } catch(e) {}
+    });
 }
 
 // El público se conecta aquí — cada pestaña abierta cuenta como 1 viewer
