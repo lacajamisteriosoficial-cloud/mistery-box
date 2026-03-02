@@ -20,7 +20,7 @@
             <span class="jackpot-amount">$<span id="jackpotAmount">0</span></span>
         </div>
 
-        <!-- ✔ badge corregido con wrapper centrado -->
+        <!-- badge centrado -->
         <div style="text-align:center; margin: 8px 0;">
             <div class="live-badge-public">
                 <span class="live-dot-public"></span>
@@ -57,9 +57,15 @@
     </div>
 
     <div class="game-area">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h2 class="section-title">🎁 Seleccioná tu Caja</h2>
-            <p style="opacity: 0.8; margin-top: 5px;">Tocá una caja para participar. Transferí y esperá la aprobación.</p>
+
+        <!-- titulo centrado correctamente -->
+        <div style="display:flex; justify-content:center; margin-bottom: 20px;">
+            <div style="text-align:center;">
+                <h2 class="section-title">🎁 Seleccioná tu Caja</h2>
+                <p style="opacity: 0.8; margin-top: 5px;">
+                    Tocá una caja para participar. Transferí y esperá la aprobación.
+                </p>
+            </div>
         </div>
 
         <div id="boxesGrid" class="boxes-grid"></div>
@@ -151,7 +157,7 @@
 <script src="js/player.js"></script>
 
 <script>
-/* ── Partículas de fondo ────────────────────────────────────────────── */
+// ── Partículas de fondo ──────────────────────────────────────────────
 const canvas = document.getElementById('particlesCanvas');
 const ctx = canvas.getContext('2d');
 let particles = [];
@@ -215,8 +221,7 @@ function animateParticles() {
 
 animateParticles();
 
-/* ── Efecto flotante en las cajas ───────────────────────────────────── */
-
+// ── Efecto flotante en las cajas ─────────────────────────────────────
 function addBoxFloatEffect() {
     const boxes = document.querySelectorAll('.box:not(.taken):not(.selected):not(.pending)');
     boxes.forEach((box, i) => {
