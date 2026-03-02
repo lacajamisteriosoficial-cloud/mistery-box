@@ -73,12 +73,47 @@
     flex-wrap: wrap;
     gap: 10px;
 }
+.live-badge-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.5);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.8em;
+    font-weight: 700;
+    color: white;
+    vertical-align: middle;
+}
+.live-dot-admin {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 6px #ef4444;
+    animation: livePulse 1.2s ease-in-out infinite;
+    flex-shrink: 0;
+}
+.live-dot-admin-label { color: #ef4444; }
+#viewerCount { color: #fbbf24; font-weight: 900; }
+@keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.4); }
+}
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎁 Caja Misteriosa <span class="admin-badge">ADMIN</span></h1>
+            <h1>🎁 Caja Misteriosa 
+    <span class="admin-badge">ADMIN</span>
+    <span class="live-badge-admin">
+        <span class="live-dot-admin"></span>
+        <span class="live-dot-admin-label">LIVE</span>
+        <span id="viewerCount">0</span>
+    </span>
+</h1>
             <div class="jackpot-display">
                 💰 POZO: $<span id="jackpotAmount">0</span>
             </div>

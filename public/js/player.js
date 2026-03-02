@@ -27,12 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Registrarse como viewer en vivo ──────────────────────────────
     const viewerSource = new EventSource('/api/viewers/connect');
-viewerSource.onmessage = (event) => {
-    const { viewers } = JSON.parse(event.data);
-    const el = document.getElementById('publicViewerCount');
-    if (el) el.textContent = viewers;
-};
-viewerSource.onerror = () => {};
+    viewerSource.onmessage = (event) => {
+        const { viewers } = JSON.parse(event.data);
+        const el = document.getElementById('publicViewerCount');
+        if (el) el.textContent = viewers;
+    };
+    viewerSource.onerror = () => {};
+});  // ← ESTA LÍNEA FALTABA
 
 function init() {
     renderBoxes();
