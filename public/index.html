@@ -11,214 +11,225 @@
 <!-- Canvas de partículas de fondo -->
 <canvas id="particlesCanvas"></canvas>
 
-    <div class="container">
-        <div class="header">
-            <h1 class="main-title">🎁 Caja Misteriosa</h1>
-            <div class="jackpot-display">
-                <span class="jackpot-icon">💰</span>
-                <span class="jackpot-label">POZO</span>
-                <span class="jackpot-amount">$<span id="jackpotAmount">0</span></span>
-            </div>
+<div class="container">
+    <div class="header">
+        <h1 class="main-title">🎁 <span class="main-title-text">Caja Misteriosa</span></h1>
+        <div class="jackpot-display">
+            <span class="jackpot-icon">💰</span>
+            <span class="jackpot-label">POZO</span>
+            <span class="jackpot-amount">$<span id="jackpotAmount">0</span></span>
+        </div>
+
+        <!-- ✔ badge corregido con wrapper centrado -->
+        <div style="text-align:center; margin: 8px 0;">
             <div class="live-badge-public">
-    <span class="live-dot-public"></span>
-    <span id="publicViewerCount">0</span> viendo en vivo
-</div>
-            <p class="header-sub">✨ ¡Tocá una caja para participar! ✨</p>
-        </div>
-
-        <div id="scheduleClosed" class="schedule-closed hidden">
-            🚫 JUEGO CERRADO - Volvé en el horario habilitado
-        </div>
-
-        <div class="status-bar">
-            <div class="status-item">
-                <div id="statusIndicator" class="status-indicator status-open"></div>
-                <span id="statusText">ESPERANDO JUGADORES</span>
-            </div>
-            <div class="status-item">
-                👥 <span id="playerCount">0</span>/<span id="maxPlayersDisplay">10</span> jugadores
-            </div>
-            <div class="timer-display" id="timerDisplay">--:--</div>
-            <div class="status-item">
-                💵 Entrada: $<span id="entryPriceDisplay">500</span>
+                <span class="live-dot-public"></span>
+                <span id="publicViewerCount">0</span> viendo en vivo
             </div>
         </div>
 
-        <div class="players-section">
-            <h3>🎮 Jugadores en la Sala</h3>
-            <div id="playersList" class="players-list">
-                <p style="opacity: 0.6; width: 100%; text-align: center;">No hay jugadores todavía...</p>
-            </div>
+        <p class="header-sub">✨ ¡Tocá una caja para participar! ✨</p>
+    </div>
+
+    <div id="scheduleClosed" class="schedule-closed hidden">
+        🚫 JUEGO CERRADO - Volvé en el horario habilitado
+    </div>
+
+    <div class="status-bar">
+        <div class="status-item">
+            <div id="statusIndicator" class="status-indicator status-open"></div>
+            <span id="statusText">ESPERANDO JUGADORES</span>
         </div>
-
-        <div class="game-area">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h2 class="section-title">🎁 Seleccioná tu Caja</h2>
-                <p style="opacity: 0.8; margin-top: 5px;">Tocá una caja para participar. Transferí y esperá la aprobación.</p>
-            </div>
-            
-            <div id="boxesGrid" class="boxes-grid"></div>
-
-            <div class="actions">
-                <button id="confirmBtn" class="btn btn-success hidden" onclick="confirmSelection()">
-                    ✅ Confirmar Elección
-                </button>
-                <button id="extraBtn" class="btn btn-extra hidden" onclick="buyExtraBox()">
-                    ⭐ Comprar Caja Extra ($<span id="extraPrice">1000</span>)
-                </button>
-                <button id="playAgainBtn" class="btn btn-primary hidden" onclick="playAgain()">
-                    🔄 Volver a Jugar
-                </button>
-            </div>
+        <div class="status-item">
+            👥 <span id="playerCount">0</span>/<span id="maxPlayersDisplay">10</span> jugadores
         </div>
-
-        <div class="rules-section">
-            <h3>📋 Reglas del Juego</h3>
-            <ul>
-                <li>Tocá una caja para empezar</li>
-                <li>Transferí al alias y enviá tu comprobante</li>
-                <li>Una vez aprobado, confirmá tu caja</li>
-                <li>Cuando todos elijan, hay <span id="countdownRule">3</span> segundos y se sortea</li>
-                <li>Si ganás, te llevás el pozo. Si no, podés volver a intentar</li>
-            </ul>
+        <div class="timer-display" id="timerDisplay">--:--</div>
+        <div class="status-item">
+            💵 Entrada: $<span id="entryPriceDisplay">500</span>
         </div>
     </div>
 
-    <div id="paymentModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closePaymentModal()">&times;</span>
-            <h2>💸 Reservar Caja</h2>
-            <p>Caja seleccionada: <strong id="selectedBoxNumber">-</strong></p>
-            
-            <div class="alias-box">
-                <p>Enviá $<span id="modalEntryPrice">500</span> a este alias:</p>
-                <div class="alias-text" id="modalAlias">elnomad.mp</div>
-                <button class="btn btn-secondary" style="margin-top: 10px;" onclick="copyAlias()">
-                    📋 Copiar Alias
-                </button>
-            </div>
-
-            <div class="transfer-form">
-                <label>Tu nombre/apodo:</label>
-                <input type="text" id="playerName" placeholder="Ej: JuanPerez123" maxlength="15">
-                
-                <label>Últimos 4 dígitos de operación:</label>
-                <input type="text" id="operationId" placeholder="Ej: 1234" maxlength="10">
-                
-                <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="submitTransfer()">
-                    ✅ Ya Transferí - Reservar Caja
-                </button>
-            </div>
-
-            <p style="margin-top: 15px; font-size: 0.85em; opacity: 0.7; text-align: center;">
-                Tu caja se reservará cuando el operador verifique el pago
-            </p>
+    <div class="players-section">
+        <h3>🎮 Jugadores en la Sala</h3>
+        <div id="playersList" class="players-list">
+            <p style="opacity: 0.6; width: 100%; text-align: center;">No hay jugadores todavía...</p>
         </div>
     </div>
 
-    <div id="extraModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeExtraModal()">&times;</span>
-            <h2>⭐ Comprar Caja Extra</h2>
-            <p>Transferí $<span id="extraModalPrice">1000</span> al mismo alias</p>
-            
-            <div class="alias-box" style="margin: 20px 0;">
-                <div class="alias-text" id="extraModalAlias">elnomad.mp</div>
-            </div>
+    <div class="game-area">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 class="section-title">🎁 Seleccioná tu Caja</h2>
+            <p style="opacity: 0.8; margin-top: 5px;">Tocá una caja para participar. Transferí y esperá la aprobación.</p>
+        </div>
 
-            <input type="text" id="extraOperationId" placeholder="N° de operación" maxlength="10">
-            
-            <button class="btn btn-extra" style="width: 100%; margin-top: 20px;" onclick="submitExtraBox()">
-                ✅ Confirmar Caja Extra
+        <div id="boxesGrid" class="boxes-grid"></div>
+
+        <div class="actions">
+            <button id="confirmBtn" class="btn btn-success hidden" onclick="confirmSelection()">
+                ✅ Confirmar Elección
+            </button>
+            <button id="extraBtn" class="btn btn-extra hidden" onclick="buyExtraBox()">
+                ⭐ Comprar Caja Extra ($<span id="extraPrice">1000</span>)
+            </button>
+            <button id="playAgainBtn" class="btn btn-primary hidden" onclick="playAgain()">
+                🔄 Volver a Jugar
             </button>
         </div>
     </div>
 
-    <div id="resultScreen" class="result-screen">
-        <div class="winner-announcement">🎉</div>
-        <div id="resultTitle">¡Tenemos un Ganador!</div>
-        <div id="resultContent"></div>
-        <button id="playAgainBtn2" class="btn btn-primary" style="margin-top: 30px; display:none;" onclick="playAgain()">
-            🔄 Volver a Jugar
+    <div class="rules-section">
+        <h3>📋 Reglas del Juego</h3>
+        <ul>
+            <li>Tocá una caja para empezar</li>
+            <li>Transferí al alias y enviá tu comprobante</li>
+            <li>Una vez aprobado, confirmá tu caja</li>
+            <li>Cuando todos elijan, hay <span id="countdownRule">3</span> segundos y se sortea</li>
+            <li>Si ganás, te llevás el pozo. Si no, podés volver a intentar</li>
+        </ul>
+    </div>
+</div>
+
+<div id="paymentModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closePaymentModal()">&times;</span>
+        <h2>💸 Reservar Caja</h2>
+        <p>Caja seleccionada: <strong id="selectedBoxNumber">-</strong></p>
+
+        <div class="alias-box">
+            <p>Enviá $<span id="modalEntryPrice">500</span> a este alias:</p>
+            <div class="alias-text" id="modalAlias">elnomad.mp</div>
+            <button class="btn btn-secondary" style="margin-top: 10px;" onclick="copyAlias()">
+                📋 Copiar Alias
+            </button>
+        </div>
+
+        <div class="transfer-form">
+            <label>Tu nombre/apodo:</label>
+            <input type="text" id="playerName" placeholder="Ej: JuanPerez123" maxlength="15">
+
+            <label>Últimos 4 dígitos de operación:</label>
+            <input type="text" id="operationId" placeholder="Ej: 1234" maxlength="10">
+
+            <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="submitTransfer()">
+                ✅ Ya Transferí - Reservar Caja
+            </button>
+        </div>
+
+        <p style="margin-top: 15px; font-size: 0.85em; opacity: 0.7; text-align: center;">
+            Tu caja se reservará cuando el operador verifique el pago
+        </p>
+    </div>
+</div>
+
+<div id="extraModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeExtraModal()">&times;</span>
+        <h2>⭐ Comprar Caja Extra</h2>
+        <p>Transferí $<span id="extraModalPrice">1000</span> al mismo alias</p>
+
+        <div class="alias-box" style="margin: 20px 0;">
+            <div class="alias-text" id="extraModalAlias">elnomad.mp</div>
+        </div>
+
+        <input type="text" id="extraOperationId" placeholder="N° de operación" maxlength="10">
+
+        <button class="btn btn-extra" style="width: 100%; margin-top: 20px;" onclick="submitExtraBox()">
+            ✅ Confirmar Caja Extra
         </button>
     </div>
+</div>
 
-    <script src="js/player.js"></script>
-    <script>
-    // ── Partículas de fondo ──────────────────────────────────────────────
-    const canvas = document.getElementById('particlesCanvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
+<div id="resultScreen" class="result-screen">
+    <div class="winner-announcement">🎉</div>
+    <div id="resultTitle">¡Tenemos un Ganador!</div>
+    <div id="resultContent"></div>
+    <button id="playAgainBtn2" class="btn btn-primary" style="margin-top: 30px; display:none;" onclick="playAgain()">
+        🔄 Volver a Jugar
+    </button>
+</div>
 
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+<script src="js/player.js"></script>
 
-    function createParticle() {
-        return {
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            size: Math.random() * 3 + 1,
-            speedX: (Math.random() - 0.5) * 0.4,
-            speedY: (Math.random() - 0.5) * 0.4,
-            opacity: Math.random() * 0.5 + 0.1,
-            color: `hsl(${Math.random() * 60 + 200}, 80%, 70%)`
-        };
-    }
+<script>
+/* ── Partículas de fondo ────────────────────────────────────────────── */
+const canvas = document.getElementById('particlesCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
 
-    for (let i = 0; i < 80; i++) particles.push(createParticle());
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
-    function animateParticles() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach(p => {
-            p.x += p.speedX;
-            p.y += p.speedY;
-            if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
-            if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fillStyle = p.color;
-            ctx.globalAlpha = p.opacity;
-            ctx.fill();
-        });
-        // Líneas entre partículas cercanas
-        ctx.globalAlpha = 0.08;
-        ctx.strokeStyle = '#a5b4fc';
-        ctx.lineWidth = 1;
-        for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-                const dx = particles[i].x - particles[j].x;
-                const dy = particles[i].y - particles[j].y;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < 120) {
-                    ctx.beginPath();
-                    ctx.moveTo(particles[i].x, particles[i].y);
-                    ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.stroke();
-                }
+function createParticle() {
+    return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 3 + 1,
+        speedX: (Math.random() - 0.5) * 0.4,
+        speedY: (Math.random() - 0.5) * 0.4,
+        opacity: Math.random() * 0.5 + 0.1,
+        color: `hsl(${Math.random() * 60 + 200}, 80%, 70%)`
+    };
+}
+
+for (let i = 0; i < 80; i++) particles.push(createParticle());
+
+function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.opacity;
+        ctx.fill();
+    });
+
+    ctx.globalAlpha = 0.08;
+    ctx.strokeStyle = '#a5b4fc';
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+                ctx.beginPath();
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.stroke();
             }
         }
-        ctx.globalAlpha = 1;
-        requestAnimationFrame(animateParticles);
-    }
-    animateParticles();
-
-    // ── Efecto flotante en las cajas ─────────────────────────────────────
-    function addBoxFloatEffect() {
-        const boxes = document.querySelectorAll('.box:not(.taken):not(.selected):not(.pending)');
-        boxes.forEach((box, i) => {
-            box.style.animationDelay = `${(i * 0.15) % 2}s`;
-            box.classList.add('floating');
-        });
     }
 
-    // Observar cambios en el grid para aplicar float a cajas nuevas
-    const observer = new MutationObserver(addBoxFloatEffect);
-    const grid = document.getElementById('boxesGrid');
-    if (grid) observer.observe(grid, { childList: true });
-    </script>
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(animateParticles);
+}
+
+animateParticles();
+
+/* ── Efecto flotante en las cajas ───────────────────────────────────── */
+
+function addBoxFloatEffect() {
+    const boxes = document.querySelectorAll('.box:not(.taken):not(.selected):not(.pending)');
+    boxes.forEach((box, i) => {
+        box.style.animationDelay = `${(i * 0.15) % 2}s`;
+        box.classList.add('floating');
+    });
+}
+
+const observer = new MutationObserver(addBoxFloatEffect);
+const grid = document.getElementById('boxesGrid');
+if (grid) observer.observe(grid, { childList: true });
+
+</script>
+
 </body>
 </html>

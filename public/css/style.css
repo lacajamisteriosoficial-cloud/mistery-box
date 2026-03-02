@@ -47,15 +47,17 @@ body {
 .main-title {
     font-size: 3.2em;
     font-weight: 900;
-    /* FIX: sin text-shadow cuando se usa webkit-text-fill-color */
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+    color: white;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+}
+
+.main-title-text {
     background: linear-gradient(135deg, #fbbf24 0%, #f472b6 50%, #818cf8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: 15px;
-    letter-spacing: 2px;
-    /* Glow via filter, no text-shadow */
-    filter: drop-shadow(0 0 15px rgba(251,191,36,0.5));
 }
 
 .header-sub {
@@ -68,9 +70,6 @@ body {
 
 /* ── Badge LIVE público ── */
 .live-badge-public {
-    display: block;
-    margin: 10px auto;
-    width: fit-content;
     display: inline-flex;
     align-items: center;
     gap: 7px;
@@ -81,6 +80,8 @@ body {
     font-size: 0.85em;
     font-weight: 700;
     color: white;
+    margin: 8px auto;
+    clear: both;
 }
 
 .live-dot-public {
