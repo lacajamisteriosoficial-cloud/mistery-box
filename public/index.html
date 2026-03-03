@@ -13,6 +13,7 @@
 <!-- ══════════════════════════════════
      HEADER
      ══════════════════════════════════ -->
+<div class="page-wrapper">
 <header class="site-header">
 
     <!-- Live + viewers — esquina superior derecha -->
@@ -89,18 +90,13 @@
 <section class="gran-pozo">
     <div class="coin-rain-container" id="coinRainContainer"></div>
     <div class="gran-pozo-label">GRAN POZO</div>
-    <div class="gran-pozo-screen">
-        <!-- Destello izquierdo -->
-        <div class="gp-flare left"></div>
-        <!-- Rectángulo negro con borde dorado -->
+    <div class="jackpot-card">
         <div class="gp-box">
             <div class="gp-inner">
                 <span class="gp-currency">$</span>
                 <span class="gp-amount" id="jackpotAmount">0</span>
             </div>
         </div>
-        <!-- Destello derecho -->
-        <div class="gp-flare right"></div>
     </div>
     <div class="gp-deco">
         <span></span><span></span><span></span><span></span><span></span>
@@ -219,6 +215,7 @@
     <button id="playAgainBtn2" class="btn btn-primary" style="margin-top:28px;display:none" onclick="playAgain()">🔄 Volver a Jugar</button>
 </div>
 
+</div><!-- /page-wrapper -->
 <script src="js/player.js"></script>
 
 <script>

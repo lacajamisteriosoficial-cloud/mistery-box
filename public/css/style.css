@@ -10,6 +10,21 @@
     --dark-bg: #0d0d1a;
 }
 
+/* ══════════════════════
+   PAGE WRAPPER
+   ══════════════════════ */
+.page-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+}
+
+/* La gran-pozo debe romper el wrapper para quedar full-width */
+.gran-pozo {
+    margin-left: -24px;
+    margin-right: -24px;
+}
+
 * { margin:0; padding:0; box-sizing:border-box; }
 
 body {
@@ -106,7 +121,7 @@ body {
 .gran-pozo {
     position: relative; width: 100%;
     background: transparent;
-    padding: 32px 20px 28px;
+    padding: 28px 20px 24px;
     text-align: center;
     overflow: visible;
     z-index: 5;
@@ -124,10 +139,13 @@ body {
     color:#7a5c00; font-weight:900; font-family:'Orbitron',monospace;
     animation:coinFall linear forwards;
 }
-.coin-drop::before{content:'$'}
-@keyframes coinFall{0%{transform:translateY(-40px) rotate(0deg);opacity:1}100%{transform:translateY(220px) rotate(720deg);opacity:0}}
+.coin-drop::before { content:'$' }
+@keyframes coinFall {
+    0%   { transform:translateY(-40px) rotate(0deg);   opacity:1 }
+    100% { transform:translateY(220px) rotate(720deg); opacity:0 }
+}
 
-/* GRAN POZO label — encima del rectángulo */
+/* "GRAN POZO" — arriba del rectángulo */
 .gran-pozo-label {
     font-family:'Orbitron',monospace;
     font-size:clamp(0.7em,2.2vw,0.95em); font-weight:900;
@@ -136,92 +154,110 @@ body {
     margin-bottom:14px; position:relative; z-index:5;
 }
 
-/* Wrapper con destellos laterales */
-.gran-pozo-screen {
+/* Tarjeta centrada del pozo */
+.jackpot-card {
     position: relative;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 5;
+    max-width: 520px;
+    margin: 0 auto;
+    overflow: visible; /* CLAVE: permite que los halos salgan */
 }
 
-/* Rectángulo negro con borde dorado brillante */
+/* Halo izquierdo */
+.jackpot-card::before {
+    content: "";
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 90px;
+    height: 90px;
+    background: #ffd54a;
+    border-radius: 50%;
+    filter: blur(38px);
+    opacity: .7;
+    pointer-events: none;
+    z-index: 0;
+    animation: haloPulse 2s ease-in-out infinite;
+}
+
+/* Halo derecho */
+.jackpot-card::after {
+    content: "";
+    position: absolute;
+    right: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 90px;
+    height: 90px;
+    background: #ffd54a;
+    border-radius: 50%;
+    filter: blur(38px);
+    opacity: .7;
+    pointer-events: none;
+    z-index: 0;
+    animation: haloPulse 2s ease-in-out infinite 0.3s;
+}
+@keyframes haloPulse {
+    0%,100% { opacity:.6; transform:translateY(-50%) scale(1); }
+    50%      { opacity:.95; transform:translateY(-50%) scale(1.2); }
+}
+
+/* Rectángulo negro con borde dorado */
 .gp-box {
     position: relative;
-    background: #050205;
-    border: 2.5px solid var(--gold);
-    border-radius: 14px;
-    padding: clamp(16px,3vw,26px) clamp(40px,9vw,90px);
-    min-width: min(380px, 82vw);
+    background: #04010a;
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: clamp(18px,3vw,28px) clamp(44px,10vw,100px);
     overflow: hidden;
     box-shadow:
-        0 0 0 1px rgba(255,215,0,0.12),
-        0 0 30px rgba(255,215,0,0.6),
-        0 0 70px rgba(255,215,0,0.25),
-        inset 0 0 50px rgba(0,0,0,0.95);
+        0 0 35px rgba(255,215,0,0.7),
+        0 0 80px rgba(255,200,0,0.3),
+        inset 0 0 60px rgba(0,0,0,0.98);
     animation: boxGlow 2s ease-in-out infinite;
+    z-index: 2;
 }
 @keyframes boxGlow {
-    0%,100%{ box-shadow: 0 0 30px rgba(255,215,0,0.6), 0 0 70px rgba(255,215,0,0.25), inset 0 0 50px rgba(0,0,0,0.95); }
-    50%    { box-shadow: 0 0 55px rgba(255,215,0,0.95), 0 0 110px rgba(255,215,0,0.45), inset 0 0 50px rgba(0,0,0,0.95); }
+    0%,100% { box-shadow: 0 0 35px rgba(255,215,0,0.7),  0 0 80px rgba(255,200,0,0.3),  inset 0 0 60px rgba(0,0,0,0.98); }
+    50%      { box-shadow: 0 0 60px rgba(255,215,0,1),    0 0 130px rgba(255,200,0,0.5), inset 0 0 60px rgba(0,0,0,0.98); }
 }
 .gp-box::before {
-    content:''; position:absolute; inset:0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px);
-    pointer-events:none; z-index:1;
+    content:''; position:absolute; inset:0; pointer-events:none; z-index:1;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px);
 }
 .gp-box::after {
-    content:''; position:absolute; top:0; left:0; right:0; height:38%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%);
+    content:''; position:absolute; top:0; left:0; right:0; height:36%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.035) 0%, transparent 100%);
     pointer-events:none; z-index:2;
 }
 
-/* Destellos ovalados a los costados del rectángulo */
-.gp-flare {
-    position: absolute;
-    top: 50%; transform: translateY(-50%);
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,220,50,1) 0%, rgba(255,160,0,0.6) 35%, transparent 70%);
-    filter: blur(5px);
-    animation: flarePulse 2s ease-in-out infinite;
-    z-index: 6; pointer-events: none;
-}
-.gp-flare.left  { left: -28px; }
-.gp-flare.right { right: -28px; animation-delay: 0.25s; }
-@keyframes flarePulse {
-    0%,100% { opacity: 0.8; transform: translateY(-50%) scale(1); }
-    50%      { opacity: 1;   transform: translateY(-50%) scale(1.25); }
-}
+.gp-inner { position:relative; z-index:5; display:flex; align-items:baseline; gap:5px; justify-content:center; }
 
-.gp-inner { position:relative; z-index:5; display:flex; align-items:baseline; gap:5px; }
-.gp-scanline { display:none; }
-
-.gp-inner{position:relative;z-index:5;display:flex;align-items:baseline;gap:5px}
-.gp-currency{
+.gp-currency {
     font-family:'Orbitron',monospace; line-height:1;
     font-size:clamp(1.6em,5vw,2.8em); font-weight:700; color:var(--gold);
     text-shadow:0 0 18px rgba(255,215,0,1),0 0 35px rgba(255,215,0,0.6);
 }
-.gp-amount{
+.gp-amount {
     font-family:'Orbitron',monospace; line-height:1;
     font-size:clamp(2.2em,7.5vw,4.8em); font-weight:900; color:#fff;
     text-shadow:0 0 18px rgba(255,255,255,1),0 0 35px rgba(255,215,0,1),0 0 70px rgba(255,215,0,0.5);
-    letter-spacing:clamp(1px,0.8vw,4px);
+    letter-spacing:clamp(2px,0.8vw,5px);
     animation:amtGlow 2s ease-in-out infinite;
+    min-width: 3ch; /* evita colapso cuando es 0 */
 }
-@keyframes amtGlow{
-    0%,100%{text-shadow:0 0 18px rgba(255,255,255,1),0 0 35px rgba(255,215,0,1)}
-    50%    {text-shadow:0 0 28px rgba(255,255,255,1),0 0 60px rgba(255,215,0,1),0 0 110px rgba(255,215,0,0.5)}
+@keyframes amtGlow {
+    0%,100% { text-shadow:0 0 18px rgba(255,255,255,1),0 0 35px rgba(255,215,0,1); }
+    50%      { text-shadow:0 0 28px rgba(255,255,255,1),0 0 60px rgba(255,215,0,1),0 0 110px rgba(255,215,0,0.5); }
 }
 
-.gp-deco{display:flex;gap:7px;justify-content:center;margin-top:12px;position:relative;z-index:5}
-.gp-deco span{display:block;height:3px;border-radius:2px;animation:decPulse 2s ease-in-out infinite}
-.gp-deco span:nth-child(1){width:8px; background:var(--gold); animation-delay:0s}
+.gp-deco { display:flex;gap:7px;justify-content:center;margin-top:12px;position:relative;z-index:5; }
+.gp-deco span { display:block;height:3px;border-radius:2px;animation:decPulse 2s ease-in-out infinite; }
+.gp-deco span:nth-child(1){width:8px; background:var(--gold);   animation-delay:0s}
 .gp-deco span:nth-child(2){width:22px;background:#f472b6; animation-delay:0.2s}
-.gp-deco span:nth-child(3){width:44px;background:var(--gold); animation-delay:0.4s}
+.gp-deco span:nth-child(3){width:44px;background:var(--gold);   animation-delay:0.4s}
 .gp-deco span:nth-child(4){width:22px;background:#f472b6; animation-delay:0.2s}
-.gp-deco span:nth-child(5){width:8px; background:var(--gold); animation-delay:0s}
+.gp-deco span:nth-child(5){width:8px; background:var(--gold);   animation-delay:0s}
 @keyframes decPulse{0%,100%{opacity:0.5;transform:scaleX(1)}50%{opacity:1;transform:scaleX(1.18)}}
 
 /* ══════════════════════
