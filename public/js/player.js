@@ -9,6 +9,32 @@ let gameState = {
 };
 let lastJackpot = 0;
 
+// ── Persistencia de sesión en localStorage ────────────────────────────
+const SESSION_KEY = 'mistery_box_session';
+
+function saveSession() {
+    if (gameState.currentPlayer || gameState.selectedBox) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify({
+            currentPlayer: gameState.currentPlayer,
+            selectedBox:   gameState.selectedBox
+        }));
+    }
+}
+
+function loadSession() {
+    try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw) return;
+        const s = JSON.parse(raw);
+        if (s.currentPlayer) gameState.currentPlayer = s.currentPlayer;
+        if (s.selectedBox)   gameState.selectedBox   = s.selectedBox;
+    } catch(e) {}
+}
+
+function clearSession() {
+    localStorage.removeItem(SESSION_KEY);
+}
+
 // ── Paleta de colores para las cajas (como en la referencia) ──────────
 const BOX_PALETTES = [
     { body:'#7c3aed', side:'#5b21b6', top:'#8b5cf6', ribbon:'#ffd700', bow:'#ff8c00' }, // violeta
@@ -159,6 +185,7 @@ function darken(hex, amount) {
 // ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+    loadSession(); // restaurar sesión tras refresh
     init();
     startPolling();
     const vs = new EventSource('/api/viewers/connect');
@@ -207,6 +234,7 @@ async function fetchGameState() {
         if (prevStatus === 'FINISHED' && gameState.status === 'OPEN') {
             gameState.resultShown = false; gameState.waitingForNewRound = false;
             gameState.currentPlayer = null; gameState.selectedBox = null;
+            clearSession(); // nueva ronda, limpiar sesión guardada
             ['confirmBtn','extraBtn','playAgainBtn'].forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById('resultScreen').classList.remove('active');
         }
@@ -220,6 +248,7 @@ async function fetchGameState() {
                 if (!gameState.selectedBox && up.selectedBox) {
                     gameState.selectedBox = up.selectedBox;
                 }
+                saveSession();
 
                 // Notificar solo la primera vez que se aprueba
                 if (!wasApproved && up.approved) {
@@ -392,6 +421,7 @@ function selectBox(n) {
     if (!gameState.currentPlayer.approved) { showNotification('Esperando confirmación de pago...','warning'); return; }
     if (!gameState.currentPlayer.box) {
         gameState.selectedBox = n;
+        saveSession();
         renderBoxes();
         document.getElementById('confirmBtn').classList.remove('hidden');
         showNotification(`Caja ${String(n).padStart(2,'0')} seleccionada. Ahora confirmá tu elección ✓`, 'success');
@@ -418,6 +448,7 @@ async function submitTransfer() {
         const r = await fetch(`${API_URL}/request-entry`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,operationId:opId,boxNumber:gameState.selectedBox})});
         if (r.ok) {
             const d = await r.json(); gameState.currentPlayer = d.player;
+            saveSession();
             closePaymentModal(); showNotification('Solicitud enviada. Esperando aprobación...','info'); renderBoxes();
         } else { const e=await r.json(); showNotification(e.error||'Error','error'); }
     } catch { showNotification('Error de conexión','error'); }
@@ -433,6 +464,7 @@ async function confirmSelection() {
         const r = await fetch(`${API_URL}/confirm-box`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({playerId:gameState.currentPlayer.id,boxNumber:boxToConfirm})});
         if (r.ok) {
             gameState.currentPlayer.box = boxToConfirm;
+            saveSession(); // guardar que ya tiene box confirmada
             document.getElementById('confirmBtn').classList.add('hidden');
             document.getElementById('extraBtn').classList.remove('hidden');
             showNotification('¡Caja confirmada! ✓','success');
@@ -447,7 +479,7 @@ async function confirmSelection() {
 async function submitExtraBoxSelection(n) {
     try {
         const r = await fetch(`${API_URL}/select-extra-box`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({playerId:gameState.currentPlayer.id,boxNumber:n})});
-        if (r.ok) { gameState.currentPlayer.extraBox=n; showNotification('¡Caja extra confirmada! ⭐','success'); await fetchGameState(); }
+        if (r.ok) { gameState.currentPlayer.extraBox=n; saveSession(); showNotification('¡Caja extra confirmada! ⭐','success'); await fetchGameState(); }
         else { const e=await r.json(); showNotification(e.error||'Error','error'); }
     } catch { showNotification('Error de conexión','error'); }
 }
@@ -472,6 +504,7 @@ async function submitExtraBox() {
 function playAgain() {
     gameState.currentPlayer=null; gameState.selectedBox=null;
     gameState.resultShown=false; gameState.waitingForNewRound=false;
+    clearSession();
     document.getElementById('resultScreen').classList.remove('active');
     ['playAgainBtn','extraBtn','confirmBtn'].forEach(id=>document.getElementById(id).classList.add('hidden'));
 }
