@@ -214,13 +214,8 @@ async function fetchGameState() {
             const up = gameState.players.find(p => p.id === gameState.currentPlayer.id);
             if (up?.approved) {
                 gameState.currentPlayer = up;
-                // Restaurar selectedBox desde el servidor si se perdió localmente
-                if (!gameState.selectedBox && up.selectedBox) {
-                    gameState.selectedBox = up.selectedBox;
-                }
                 showNotification('¡Pago aprobado! Confirmá tu caja ✓','success');
                 document.getElementById('confirmBtn').classList.remove('hidden');
-                renderBoxes();
             }
         }
         if (gameState.currentPlayer?.approved && gameState.currentPlayer?.box) {
@@ -373,12 +368,9 @@ function selectBox(n) {
     if (pending && pending.id !== gameState.currentPlayer?.id) { showNotification('Esa caja está pendiente','warning'); return; }
     if (!gameState.currentPlayer) { gameState.selectedBox=n; openPaymentModal(); return; }
     if (!gameState.currentPlayer.approved) { showNotification('Esperando confirmación de pago...','warning'); return; }
-    // Aprobado pero todavía no confirmó caja — puede elegir o cambiar su selección
     if (!gameState.currentPlayer.box) {
-        gameState.selectedBox = n;
-        renderBoxes();
-        document.getElementById('confirmBtn').classList.remove('hidden');
-        return;
+        gameState.selectedBox=n; renderBoxes();
+        document.getElementById('confirmBtn').classList.remove('hidden'); return;
     }
     if (gameState.currentPlayer.hasExtra && !gameState.currentPlayer.extraBox) { submitExtraBoxSelection(n); return; }
 }
