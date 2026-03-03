@@ -5,110 +5,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Caja Misteriosa</title>
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
 <canvas id="particlesCanvas"></canvas>
 
 <!-- ══════════════════════════════════
-     HEADER — Título profesional
+     HEADER
      ══════════════════════════════════ -->
 <header class="site-header">
-    <div class="site-header-bg"></div>
-    <div class="header-content">
-        <!-- Logo SVG: caja con signo $ y moño -->
-        <div class="logo-wrap">
-            <svg class="logo-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Sombra/glow base -->
-                <ellipse cx="40" cy="72" rx="22" ry="4" fill="rgba(255,180,0,0.18)"/>
-                <!-- Cuerpo caja -->
-                <rect x="10" y="36" width="60" height="34" rx="4" fill="url(#boxGrad)"/>
-                <!-- Frente lazo vertical -->
-                <rect x="37" y="36" width="7" height="34" rx="2" fill="url(#ribbonGrad)" opacity="0.85"/>
-                <!-- Tapa -->
-                <rect x="7" y="26" width="66" height="13" rx="3" fill="url(#lidGrad)"/>
-                <!-- Lazo horizontal tapa -->
-                <rect x="7" y="30" width="66" height="5" rx="2" fill="url(#ribbonGrad)" opacity="0.7"/>
-                <!-- Lazo vertical tapa -->
-                <rect x="37" y="26" width="7" height="13" rx="2" fill="url(#ribbonGrad)" opacity="0.85"/>
-                <!-- Moño izquierdo -->
-                <ellipse cx="29" cy="23" rx="11" ry="7" fill="url(#bowGrad)" transform="rotate(-18 29 23)"/>
-                <!-- Moño derecho -->
-                <ellipse cx="51" cy="23" rx="11" ry="7" fill="url(#bowGrad)" transform="rotate(18 51 23)"/>
-                <!-- Centro moño -->
-                <circle cx="40" cy="24" r="5" fill="url(#bowCenterGrad)"/>
-                <!-- Signo $ en el cuerpo -->
-                <text x="40" y="59" text-anchor="middle" font-family="Orbitron,monospace" font-size="15" font-weight="900" fill="#ffd700" filter="url(#glow)">$</text>
-                <!-- Brillos -->
-                <rect x="12" y="38" width="56" height="4" rx="2" fill="rgba(255,255,255,0.08)"/>
-                <defs>
-                    <linearGradient id="boxGrad" x1="10" y1="36" x2="70" y2="70" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#5c3317"/>
-                        <stop offset="100%" stop-color="#2d1810"/>
-                    </linearGradient>
-                    <linearGradient id="lidGrad" x1="7" y1="26" x2="73" y2="39" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#7a4520"/>
-                        <stop offset="100%" stop-color="#3d2210"/>
-                    </linearGradient>
-                    <linearGradient id="ribbonGrad" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-                        <stop offset="0%" stop-color="#b8860b"/>
-                        <stop offset="50%" stop-color="#ffd700"/>
-                        <stop offset="100%" stop-color="#b8860b"/>
-                    </linearGradient>
-                    <radialGradient id="bowGrad" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stop-color="#ff8c42"/>
-                        <stop offset="100%" stop-color="#cc3700"/>
-                    </radialGradient>
-                    <radialGradient id="bowCenterGrad" cx="40%" cy="40%" r="60%">
-                        <stop offset="0%" stop-color="#ffcc80"/>
-                        <stop offset="100%" stop-color="#ff7043"/>
-                    </radialGradient>
-                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="2" result="blur"/>
-                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
-                </defs>
-            </svg>
+
+    <!-- Live + viewers — esquina superior derecha -->
+    <div class="live-corner">
+        <div class="live-badge-public">
+            <span class="live-dot-public"></span>
+            EN VIVO
         </div>
-        <div class="title-text-wrap">
-            <h1 class="site-title">
-                <span class="site-title-main">CAJA</span>
-                <span class="site-title-sub">MISTERIOSA</span>
-            </h1>
-            <div class="site-title-tagline">¡Tocá una caja y ganá el pozo!</div>
+        <div class="viewers-badge">
+            👁 <span id="publicViewerCount">0</span>
         </div>
     </div>
 
-    <!-- Badge live -->
-    <div class="live-row">
-        <div class="live-badge-public">
-            <span class="live-dot-public"></span>
-            <span id="publicViewerCount">0</span> viendo en vivo
+    <div class="header-inner">
+        <!-- Logo SVG: caja 3D con moño y signo $ -->
+        <svg class="logo-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Sombra base -->
+            <ellipse cx="40" cy="74" rx="20" ry="3.5" fill="rgba(255,180,0,0.16)"/>
+            <!-- Cuerpo caja -->
+            <rect x="11" y="36" width="58" height="32" rx="4" fill="url(#lg-body)"/>
+            <!-- Lazo vertical cuerpo -->
+            <rect x="37" y="36" width="7" height="32" rx="2" fill="url(#lg-ribbon)" opacity="0.9"/>
+            <!-- Tapa -->
+            <rect x="8" y="27" width="64" height="12" rx="3" fill="url(#lg-lid)"/>
+            <!-- Lazo horizontal tapa -->
+            <rect x="8" y="30" width="64" height="5" rx="2" fill="url(#lg-ribbon)" opacity="0.75"/>
+            <!-- Lazo vertical tapa -->
+            <rect x="37" y="27" width="7" height="12" rx="2" fill="url(#lg-ribbon)" opacity="0.9"/>
+            <!-- Moño izquierdo -->
+            <ellipse cx="30" cy="23" rx="11" ry="6.5" fill="url(#lg-bow)" transform="rotate(-20 30 23)"/>
+            <!-- Moño derecho -->
+            <ellipse cx="50" cy="23" rx="11" ry="6.5" fill="url(#lg-bow)" transform="rotate(20 50 23)"/>
+            <!-- Nudo -->
+            <circle cx="40" cy="25" r="5.5" fill="url(#lg-center)"/>
+            <circle cx="40" cy="25" r="2.5" fill="rgba(255,255,255,0.6)"/>
+            <!-- Signo $ -->
+            <text x="40" y="58" text-anchor="middle" font-family="Orbitron,monospace" font-size="14" font-weight="900" fill="#ffd700" filter="url(#lg-glow)">$</text>
+            <!-- Brillo tapa -->
+            <rect x="11" y="28" width="58" height="3.5" rx="1.5" fill="rgba(255,255,255,0.1)"/>
+            <defs>
+                <linearGradient id="lg-body" x1="11" y1="36" x2="69" y2="68" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#6d3820"/><stop offset="100%" stop-color="#2d1408"/>
+                </linearGradient>
+                <linearGradient id="lg-lid" x1="8" y1="27" x2="72" y2="39" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#8c4e28"/><stop offset="100%" stop-color="#3d1c0a"/>
+                </linearGradient>
+                <linearGradient id="lg-ribbon" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+                    <stop offset="0%" stop-color="#b8860b"/><stop offset="50%" stop-color="#ffd700"/><stop offset="100%" stop-color="#b8860b"/>
+                </linearGradient>
+                <radialGradient id="lg-bow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#ff9045"/><stop offset="100%" stop-color="#cc3700"/>
+                </radialGradient>
+                <radialGradient id="lg-center" cx="40%" cy="40%" r="60%">
+                    <stop offset="0%" stop-color="#ffcc80"/><stop offset="100%" stop-color="#ff7043"/>
+                </radialGradient>
+                <filter id="lg-glow">
+                    <feGaussianBlur stdDeviation="1.5" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+            </defs>
+        </svg>
+
+        <div class="title-stack">
+            <div class="title-caja">CAJA</div>
+            <div class="title-misteriosa">MISTERIOSA</div>
+            <div class="title-tagline">¡Tocá una caja y ganá el pozo!</div>
         </div>
     </div>
 </header>
 
 <!-- ══════════════════════════════════
-     GRAN POZO — full width
+     GRAN POZO
      ══════════════════════════════════ -->
-<section class="gran-pozo" id="granPozo">
+<section class="gran-pozo">
     <div class="coin-rain-container" id="coinRainContainer"></div>
     <div class="gran-pozo-label">GRAN POZO</div>
     <div class="gran-pozo-screen">
-        <div class="gran-pozo-inner">
+        <div class="gp-inner">
             <span class="gp-currency">$</span>
             <span class="gp-amount" id="jackpotAmount">0</span>
         </div>
         <div class="gp-scanline"></div>
     </div>
-    <div class="gp-decorline">
+    <div class="gp-deco">
         <span></span><span></span><span></span><span></span><span></span>
     </div>
 </section>
 
 <!-- ══════════════════════════════════
-     CONTENIDO PRINCIPAL
+     MAIN CONTENT
      ══════════════════════════════════ -->
 <div class="container">
 
@@ -135,37 +129,45 @@
     <div class="players-section">
         <h3>🎮 Jugadores en la Sala</h3>
         <div id="playersList" class="players-list">
-            <p style="opacity:0.6;width:100%;text-align:center;">No hay jugadores todavía...</p>
+            <p style="opacity:0.5;width:100%;text-align:center;font-size:0.9em;">No hay jugadores todavía...</p>
         </div>
     </div>
 
-    <!-- Game area -->
+    <!-- Cajas + instrucciones -->
     <div class="game-area">
-        <div style="text-align:center; margin-bottom:24px;">
-            <h2 class="section-heading">Seleccioná tu Caja</h2>
-            <p style="opacity:0.6; font-size:0.9em; margin-top:6px;">Tocá una caja · Transferí · Esperá la aprobación</p>
+
+        <div class="section-title-wrap">
+            <div class="section-title-deco"></div>
+            <div class="section-title">Seleccioná tu Caja</div>
+            <div class="section-title-deco right"></div>
         </div>
 
-        <!-- Grid — los canvas Three.js se inyectan aquí -->
         <div id="boxesGrid" class="boxes-grid"></div>
 
         <div class="actions">
             <button id="confirmBtn" class="btn btn-success hidden" onclick="confirmSelection()">✅ Confirmar Elección</button>
-            <button id="extraBtn" class="btn btn-extra hidden" onclick="buyExtraBox()">⭐ Comprar Caja Extra ($<span id="extraPrice">1000</span>)</button>
+            <button id="extraBtn"   class="btn btn-extra   hidden" onclick="buyExtraBox()">⭐ Comprar Caja Extra ($<span id="extraPrice">1000</span>)</button>
             <button id="playAgainBtn" class="btn btn-primary hidden" onclick="playAgain()">🔄 Volver a Jugar</button>
         </div>
-    </div>
 
-    <!-- Reglas -->
-    <div class="rules-section">
-        <h3>📋 Reglas del Juego</h3>
-        <ul>
-            <li>Tocá una caja para empezar</li>
-            <li>Transferí al alias y enviá tu comprobante</li>
-            <li>Una vez aprobado, confirmá tu caja</li>
-            <li>Cuando todos elijan, hay <span id="countdownRule">3</span> segundos y se sortea</li>
-            <li>Si ganás, te llevás el pozo. Si no, podés volver a intentar</li>
-        </ul>
+        <!-- Barra de instrucciones paso a paso -->
+        <div class="steps-bar">
+            <div class="step">
+                <span class="step-icon">👆</span>
+                <span class="step-text"><b>1.</b> Elegí una caja</span>
+            </div>
+            <div class="step-arrow">›</div>
+            <div class="step">
+                <span class="step-icon">✅</span>
+                <span class="step-text"><b>2.</b> Confirmá tu selección</span>
+            </div>
+            <div class="step-arrow">›</div>
+            <div class="step">
+                <span class="step-icon">🏆</span>
+                <span class="step-text"><b>3.</b> Descubrí si ganás</span>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -178,16 +180,16 @@
         <div class="alias-box">
             <p>Enviá $<span id="modalEntryPrice">500</span> a este alias:</p>
             <div class="alias-text" id="modalAlias">elnomad.mp</div>
-            <button class="btn btn-secondary" style="margin-top:10px;" onclick="copyAlias()">📋 Copiar Alias</button>
+            <button class="btn btn-secondary" style="margin-top:10px" onclick="copyAlias()">📋 Copiar Alias</button>
         </div>
         <div class="transfer-form">
             <label>Tu nombre/apodo:</label>
             <input type="text" id="playerName" placeholder="Ej: JuanPerez123" maxlength="15">
             <label>Últimos 4 dígitos de operación:</label>
             <input type="text" id="operationId" placeholder="Ej: 1234" maxlength="10">
-            <button class="btn btn-primary" style="width:100%;margin-top:20px;" onclick="submitTransfer()">✅ Ya Transferí - Reservar Caja</button>
+            <button class="btn btn-primary" style="width:100%;margin-top:18px" onclick="submitTransfer()">✅ Ya Transferí - Reservar Caja</button>
         </div>
-        <p style="margin-top:15px;font-size:0.85em;opacity:0.7;text-align:center;">Tu caja se reservará cuando el operador verifique el pago</p>
+        <p style="margin-top:14px;font-size:0.82em;opacity:0.6;text-align:center">Tu caja se reservará cuando el operador verifique el pago</p>
     </div>
 </div>
 
@@ -196,19 +198,19 @@
         <span class="close-btn" onclick="closeExtraModal()">&times;</span>
         <h2>⭐ Comprar Caja Extra</h2>
         <p>Transferí $<span id="extraModalPrice">1000</span> al mismo alias</p>
-        <div class="alias-box" style="margin:20px 0;">
+        <div class="alias-box" style="margin:18px 0">
             <div class="alias-text" id="extraModalAlias">elnomad.mp</div>
         </div>
         <input type="text" id="extraOperationId" placeholder="N° de operación" maxlength="10">
-        <button class="btn btn-extra" style="width:100%;margin-top:20px;" onclick="submitExtraBox()">✅ Confirmar Caja Extra</button>
+        <button class="btn btn-extra" style="width:100%;margin-top:18px" onclick="submitExtraBox()">✅ Confirmar Caja Extra</button>
     </div>
 </div>
 
 <div id="resultScreen" class="result-screen">
-    <div class="winner-announcement">🎉</div>
-    <div id="resultTitle">¡Tenemos un Ganador!</div>
+    <div style="font-size:3em">🎉</div>
+    <div id="resultTitle"></div>
     <div id="resultContent"></div>
-    <button id="playAgainBtn2" class="btn btn-primary" style="margin-top:30px;display:none;" onclick="playAgain()">🔄 Volver a Jugar</button>
+    <button id="playAgainBtn2" class="btn btn-primary" style="margin-top:28px;display:none" onclick="playAgain()">🔄 Volver a Jugar</button>
 </div>
 
 <script src="js/player.js"></script>
@@ -218,27 +220,30 @@
 const canvas = document.getElementById('particlesCanvas');
 const ctx = canvas.getContext('2d');
 let particles = [];
-function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+function resizeCanvas(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
 resizeCanvas(); window.addEventListener('resize', resizeCanvas);
-function mkP() {
-    return { x: Math.random()*canvas.width, y: Math.random()*canvas.height,
-             size: Math.random()*2+0.8, speedX:(Math.random()-0.5)*0.3, speedY:(Math.random()-0.5)*0.3,
-             opacity:Math.random()*0.35+0.08, color:`hsl(${Math.random()*50+200},65%,60%)` };
+function mkP(){
+    return { x:Math.random()*canvas.width, y:Math.random()*canvas.height,
+             size:Math.random()*2+0.6, speedX:(Math.random()-.5)*0.28, speedY:(Math.random()-.5)*0.28,
+             opacity:Math.random()*0.3+0.07, color:`hsl(${Math.random()*50+200},65%,58%)` };
 }
-for(let i=0;i<60;i++) particles.push(mkP());
-function animP() {
+for(let i=0;i<55;i++) particles.push(mkP());
+function animP(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    particles.forEach(p => {
+    particles.forEach(p=>{
         p.x+=p.speedX; p.y+=p.speedY;
-        if(p.x<0||p.x>canvas.width)p.speedX*=-1;
-        if(p.y<0||p.y>canvas.height)p.speedY*=-1;
+        if(p.x<0||p.x>canvas.width)  p.speedX*=-1;
+        if(p.y<0||p.y>canvas.height) p.speedY*=-1;
         ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
         ctx.fillStyle=p.color; ctx.globalAlpha=p.opacity; ctx.fill();
     });
-    ctx.globalAlpha=0.05; ctx.strokeStyle='#a5b4fc'; ctx.lineWidth=0.8;
-    for(let i=0;i<particles.length;i++) for(let j=i+1;j<particles.length;j++) {
+    ctx.globalAlpha=0.045; ctx.strokeStyle='#a5b4fc'; ctx.lineWidth=0.7;
+    for(let i=0;i<particles.length;i++) for(let j=i+1;j<particles.length;j++){
         const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y;
-        if(dx*dx+dy*dy<110*110){ ctx.beginPath(); ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y); ctx.stroke(); }
+        if(dx*dx+dy*dy<100*100){
+            ctx.beginPath(); ctx.moveTo(particles[i].x,particles[i].y);
+            ctx.lineTo(particles[j].x,particles[j].y); ctx.stroke();
+        }
     }
     ctx.globalAlpha=1; requestAnimationFrame(animP);
 }
