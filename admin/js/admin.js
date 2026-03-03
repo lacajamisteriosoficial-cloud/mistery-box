@@ -131,6 +131,9 @@ async function fetchGameState() {
         } else {
             hideResultInfo();
         }
+        if (data.winnersHistory) {
+            renderWinnersHistory(data.winnersHistory);
+        }
 
     } catch (error) {
         console.error('Error:', error);
@@ -158,6 +161,7 @@ function showResultInfo(winner, winningBox, prize) {
         infoDiv.style.borderColor = '#10b981';
         infoDiv.innerHTML = `
             🎉 <strong>GANADOR: ${winner.name}</strong> — Premio: $${prize ? prize.toLocaleString() : 0}
+            <br>📲 Transferir a: <strong style="font-size:1.1em;color:#fbbf24">${winner.mpAlias || '—'}</strong>
             <br><small>Caja ganadora: ${winningBox}</small>
         `;
     } else {
@@ -405,6 +409,53 @@ async function rejectTransfer(transferId) {
             renderPendingTransfers();
         }
     } catch (error) {
+        showNotification('Error', 'error');
+    }
+}
+
+function renderWinnersHistory(history) {
+    const container = document.getElementById('winnersHistoryList');
+    if (!container) return;
+    if (!history || history.length === 0) {
+        container.innerHTML = '<p style="opacity:0.5;text-align:center;">Aún no hay ganadores en esta sesión...</p>';
+        return;
+    }
+    container.innerHTML = history.map(w => {
+        const date = new Date(w.timestamp);
+        const timeStr = date.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+        const transferred = w.transferred;
+        return `
+        <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:15px;margin-bottom:12px;border-left:4px solid ${transferred ? '#10b981' : '#f59e0b'};">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <div>
+                    <div style="font-size:1.1em;font-weight:bold;">🏆 ${w.name}</div>
+                    <div style="margin:4px 0;">📲 Alias MP: <strong style="color:#fbbf24;font-size:1.05em;">${w.mpAlias}</strong></div>
+                    <div style="font-size:1.3em;color:#10b981;font-weight:bold;">$${w.prize.toLocaleString()}</div>
+                    <div style="font-size:0.8em;opacity:0.6;">Caja #${w.winningBox} — ${timeStr}</div>
+                </div>
+                <div style="text-align:right;">
+                    ${transferred
+                        ? '<span style="background:#10b981;padding:6px 14px;border-radius:20px;font-size:0.85em;font-weight:bold;">✅ Transferido</span>'
+                        : `<button onclick="markTransferred('${w.roundId}')" style="background:#f59e0b;color:#1f2937;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-weight:bold;font-size:0.9em;">💸 Marcar como transferido</button>`
+                    }
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function markTransferred(roundId) {
+    try {
+        const r = await fetch('/api/mark-transferred', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({roundId})
+        });
+        if (r.ok) {
+            showNotification('✅ Marcado como transferido', 'success');
+            await fetchGameState();
+        }
+    } catch(e) {
         showNotification('Error', 'error');
     }
 }

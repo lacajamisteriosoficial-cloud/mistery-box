@@ -188,9 +188,12 @@
             <button class="btn btn-secondary" style="margin-top:10px" onclick="copyAlias()">📋 Copiar Alias</button>
         </div>
         <div class="transfer-form">
-            <label>Tu nombre/apodo:</label>
+            <label>Tu apodo (se mostrará en la sala):</label>
             <input type="text" id="playerName" placeholder="Ej: JuanPerez123" maxlength="15">
-            <label>Últimos 4 dígitos de operación:</label>
+            <label>Tu alias de MercadoPago:</label>
+            <input type="text" id="playerMpAlias" placeholder="Ej: juan.perez.mp">
+            <small style="opacity:0.6;font-size:0.8em;margin-top:-6px;display:block;">⚠️ Necesario para transferirte el premio si ganás</small>
+            <label style="margin-top:10px;">Últimos 4 dígitos de operación:</label>
             <input type="text" id="operationId" placeholder="Ej: 1234" maxlength="10">
             <button class="btn btn-primary" style="width:100%;margin-top:18px" onclick="submitTransfer()">✅ Ya Transferí - Reservar Caja</button>
         </div>

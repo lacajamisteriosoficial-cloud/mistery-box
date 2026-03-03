@@ -468,11 +468,13 @@ function copyAlias() { navigator.clipboard.writeText(gameState.config.alias).the
 
 async function submitTransfer() {
     const name = document.getElementById('playerName').value.trim();
+    const mpAlias = document.getElementById('playerMpAlias').value.trim();
     const opId = document.getElementById('operationId').value.trim();
-    if (!name)           { showNotification('Ingresá tu nombre','error'); return; }
+    if (!name)           { showNotification('Ingresá tu apodo','error'); return; }
+    if (!mpAlias)        { showNotification('Ingresá tu alias de MercadoPago','error'); return; }
     if (opId.length < 4) { showNotification('Ingresá el número de operación','error'); return; }
     try {
-        const r = await fetch(`${API_URL}/request-entry`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,operationId:opId,boxNumber:gameState.selectedBox})});
+        const r = await fetch(`${API_URL}/request-entry`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,mpAlias,operationId:opId,boxNumber:gameState.selectedBox})});
         if (r.ok) {
             const d = await r.json(); gameState.currentPlayer = d.player;
             saveSession();

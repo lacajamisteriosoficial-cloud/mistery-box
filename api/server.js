@@ -39,6 +39,7 @@ let gameState = {
     winningBox: null,
     lastPrize: null,
     pendingTransfers: [],
+    winnersHistory: [], // ← NUEVO: historial de ganadores
     config: {
         entryPrice: 500,
         extraPrice: 1000,
@@ -68,13 +69,11 @@ function broadcastViewerCount() {
     adminViewerStreams.forEach(res => {
         try { res.write(payload); } catch(e) {}
     });
-    // También notificar al público
     viewerConnections.forEach(res => {
         try { res.write(payload); } catch(e) {}
     });
 }
 
-// El público se conecta aquí — cada pestaña abierta cuenta como 1 viewer
 app.get('/api/viewers/connect', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -84,7 +83,6 @@ app.get('/api/viewers/connect', (req, res) => {
     viewerConnections.push(res);
     broadcastViewerCount();
 
-    // Heartbeat cada 25s para que Render no cierre la conexión
     const heartbeat = setInterval(() => {
         try { res.write(': ping\n\n'); } catch(e) {}
     }, 25000);
@@ -96,14 +94,12 @@ app.get('/api/viewers/connect', (req, res) => {
     });
 });
 
-// El admin escucha el contador en tiempo real
 app.get('/api/viewers/admin-stream', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
-    // Enviar el conteo actual al conectarse
     res.write(`data: ${JSON.stringify({ viewers: viewerConnections.length })}\n\n`);
     adminViewerStreams.push(res);
 
@@ -116,7 +112,6 @@ app.get('/api/viewers/admin-stream', (req, res) => {
         adminViewerStreams = adminViewerStreams.filter(c => c !== res);
     });
 });
-// ─────────────────────────────────────────────────────────────────────
 
 function isWithinSchedule() {
     if (!gameState.config.schedule.enabled) return true;
@@ -139,12 +134,18 @@ app.get('/api/state', (req, res) => {
         prize: gameState.lastPrize,
         config: gameState.config,
         pendingTransfers: gameState.pendingTransfers,
-        inSchedule: isWithinSchedule()
+        inSchedule: isWithinSchedule(),
+        winnersHistory: gameState.winnersHistory // ← exponer historial
     });
 });
 
+// ← NUEVO: endpoint para obtener solo el historial
+app.get('/api/winners-history', (req, res) => {
+    res.json({ winnersHistory: gameState.winnersHistory });
+});
+
 app.post('/api/request-entry', (req, res) => {
-    const { name, operationId, boxNumber } = req.body;
+    const { name, operationId, boxNumber, mpAlias } = req.body; // ← mpAlias nuevo
     if (!isWithinSchedule()) return res.status(400).json({error: 'Fuera de horario de juego'});
     if (gameState.status !== 'OPEN') return res.status(400).json({error: 'La sala está cerrada'});
     if (gameState.players.length >= gameState.config.maxPlayers) return res.status(400).json({error: 'Sala completa'});
@@ -153,6 +154,7 @@ app.post('/api/request-entry', (req, res) => {
     const player = {
         id: Date.now().toString(),
         name,
+        mpAlias: mpAlias || '', // ← guardar alias MP
         box: null,
         extraBox: null,
         hasExtra: false,
@@ -163,6 +165,7 @@ app.post('/api/request-entry', (req, res) => {
         id: Date.now().toString(),
         playerId: player.id,
         name,
+        mpAlias: mpAlias || '', // ← guardar en transfer también
         operationId,
         amount: gameState.config.entryPrice,
         type: 'entry',
@@ -184,6 +187,7 @@ app.post('/api/request-extra', (req, res) => {
         id: Date.now().toString(),
         playerId,
         name: player.name,
+        mpAlias: player.mpAlias || '',
         operationId,
         amount: gameState.config.extraPrice,
         type: 'extra',
@@ -321,6 +325,18 @@ function drawWinner() {
         gameState.winner = gameState.players.find(p => p.id === winnerId);
         gameState.winner.prize = prize;
         gameState.lastPrize = prize;
+
+        // ← NUEVO: guardar en historial
+        gameState.winnersHistory.unshift({
+            roundId: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            name: gameState.winner.name,
+            mpAlias: gameState.winner.mpAlias || '—',
+            prize: prize,
+            winningBox: winningBox,
+            transferred: false // el admin lo marca como transferido
+        });
+
         gameState.jackpot = 0;
     } else {
         const commission = gameState.roundFund * (gameState.config.commissionPercent / 100);
@@ -333,6 +349,15 @@ function drawWinner() {
     gameState.status = 'FINISHED';
     scheduleAutoReset();
 }
+
+// ← NUEVO: marcar ganador como transferido
+app.post('/api/mark-transferred', (req, res) => {
+    const { roundId } = req.body;
+    const entry = gameState.winnersHistory.find(w => w.roundId === roundId);
+    if (!entry) return res.status(404).json({error: 'No encontrado'});
+    entry.transferred = true;
+    res.json({success: true});
+});
 
 function scheduleAutoReset() {
     timers.autoReset = setTimeout(() => {
