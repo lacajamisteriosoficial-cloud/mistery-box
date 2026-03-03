@@ -197,7 +197,34 @@ document.addEventListener('DOMContentLoaded', () => {
     vs.onerror = () => {};
 });
 
-function init() { renderBoxes(); updateDisplay(); }
+function init() {
+    renderBoxes();
+    updateDisplay();
+    restoreSessionUI();
+}
+
+function restoreSessionUI() {
+    const cp = gameState.currentPlayer;
+    if (!cp) return;
+
+    // Tiene caja extra aprobada y seleccionada → ocultar extraBtn
+    if (cp.hasExtra && cp.extraBox) {
+        document.getElementById('extraBtn').classList.add('hidden');
+    }
+    // Tiene pago aprobado, tiene box confirmada → mostrar extraBtn si no tiene extra aún
+    else if (cp.approved && cp.box && !cp.hasExtra) {
+        document.getElementById('extraBtn').classList.remove('hidden');
+    }
+    // Tiene pago aprobado, aún NO tiene box confirmada → mostrar confirmBtn
+    else if (cp.approved && !cp.box && gameState.selectedBox) {
+        document.getElementById('confirmBtn').classList.remove('hidden');
+    }
+    // Tiene extra aprobado pero sin caja extra elegida → ocultar extraBtn, esperar que toque caja
+    if (cp.hasExtra && !cp.extraBox) {
+        document.getElementById('extraBtn').classList.add('hidden');
+        showNotification('¡Caja extra aprobada! Tocá una caja libre para elegirla ⭐', 'info');
+    }
+}
 
 function startPolling() {
     setInterval(fetchGameState, 1000);
