@@ -144,31 +144,14 @@ body {
 
 .gran-pozo-screen {
     position:relative; display:inline-flex; justify-content:center;
-    background:#020108; border:3px solid var(--gold); border-radius:16px;
-    padding:clamp(14px,3vw,24px) clamp(28px,8vw,72px);
-    min-width:min(400px,86vw); overflow:hidden; z-index:5;
-    animation:screenPulse 2s ease-in-out infinite;
+    background:transparent; border:none; border-radius:0;
+    padding:clamp(10px,2vw,18px) clamp(20px,6vw,60px);
+    min-width:min(400px,86vw); overflow:visible; z-index:5;
 }
-@keyframes screenPulse{
-    0%,100%{box-shadow:0 0 50px rgba(255,215,0,0.55),0 0 100px rgba(255,215,0,0.18),inset 0 0 60px rgba(0,0,0,0.98)}
-    50%    {box-shadow:0 0 80px rgba(255,215,0,0.8), 0 0 150px rgba(255,215,0,0.35),inset 0 0 60px rgba(0,0,0,0.98)}
-}
-.gran-pozo-screen::before{
-    content:''; position:absolute; inset:0;
-    background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.12) 3px,rgba(0,0,0,0.12) 4px);
-    pointer-events:none; z-index:2;
-}
-.gran-pozo-screen::after{
-    content:''; position:absolute; top:0; left:0; right:0; height:40%;
-    background:linear-gradient(180deg,rgba(255,255,255,0.03) 0%,transparent 100%);
-    pointer-events:none; z-index:3;
-}
-.gp-scanline{
-    position:absolute; top:-30%; left:0; right:0; height:30%;
-    background:linear-gradient(180deg,transparent,rgba(255,215,0,0.06),transparent);
-    animation:scanline 3s linear infinite; z-index:4; pointer-events:none;
-}
-@keyframes scanline{0%{top:-30%}100%{top:130%}}
+/* Sin box, sin borde, sin scanlines — el monto flota libre */
+.gran-pozo-screen::before{ display:none; }
+.gran-pozo-screen::after { display:none; }
+.gp-scanline { display:none; }
 
 .gp-inner{position:relative;z-index:5;display:flex;align-items:baseline;gap:5px}
 .gp-currency{
