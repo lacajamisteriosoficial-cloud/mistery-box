@@ -246,6 +246,9 @@ async function fetchGameState() {
         if (data.jackpot > lastJackpot && lastJackpot > 0) spawnCoinRain();
         lastJackpot = data.jackpot;
 
+        // Actualizar últimos ganadores
+        if (data.winnersHistory) renderUltimosGanadores(data.winnersHistory);
+
         document.getElementById('scheduleClosed').classList.toggle('hidden', data.inSchedule !== false);
         if (data.countdownEnd && gameState.status === 'COUNTDOWN') updateTimer(data.countdownEnd);
 
@@ -468,13 +471,11 @@ function copyAlias() { navigator.clipboard.writeText(gameState.config.alias).the
 
 async function submitTransfer() {
     const name = document.getElementById('playerName').value.trim();
-    const mpAlias = document.getElementById('playerMpAlias').value.trim();
     const opId = document.getElementById('operationId').value.trim();
-    if (!name)           { showNotification('Ingresá tu apodo','error'); return; }
-    if (!mpAlias)        { showNotification('Ingresá tu alias de MercadoPago','error'); return; }
+    if (!name)           { showNotification('Ingresá tu nombre','error'); return; }
     if (opId.length < 4) { showNotification('Ingresá el número de operación','error'); return; }
     try {
-        const r = await fetch(`${API_URL}/request-entry`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,mpAlias,operationId:opId,boxNumber:gameState.selectedBox})});
+        const r = await fetch(`${API_URL}/request-entry`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,operationId:opId,boxNumber:gameState.selectedBox})});
         if (r.ok) {
             const d = await r.json(); gameState.currentPlayer = d.player;
             saveSession();
@@ -572,6 +573,34 @@ function createConfetti() {
         c.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[Math.floor(Math.random()*cols.length)]};width:${Math.random()*10+5}px;height:${Math.random()*10+5}px;border-radius:${Math.random()>.5?'50%':'2px'};animation-delay:${Math.random()*2}s;animation-duration:${Math.random()*2+2}s;`;
         document.body.appendChild(c); setTimeout(()=>c.remove(),4000);
     }
+}
+
+function renderUltimosGanadores(history) {
+    const container = document.getElementById('ultimosGanadoresList');
+    if (!container) return;
+    const winners = history.filter(w => w.name).slice(0, 3);
+    if (!winners.length) {
+        container.innerHTML = '<div class="ug-empty">Aún no hay ganadores...<br>¡sé el primero!</div>';
+        return;
+    }
+    const medals = ['🥇','🥈','🥉'];
+    container.innerHTML = winners.map((w, i) => `
+        <div class="ug-card">
+            <div class="ug-medal">${medals[i] || '🏆'}</div>
+            <div class="ug-info">
+                <div class="ug-name">${w.name}</div>
+                <div class="ug-prize">$${w.prize.toLocaleString()}</div>
+                <div class="ug-box-tag">Caja #${w.winningBox}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function toggleUGWidget() {
+    const widget = document.getElementById('ugWidget');
+    const icon   = document.getElementById('ugToggleIcon');
+    widget.classList.toggle('minimized');
+    icon.textContent = widget.classList.contains('minimized') ? '▶' : '▼';
 }
 
 function showNotification(msg,type='info'){
