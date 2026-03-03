@@ -345,13 +345,18 @@ function renderBoxes() {
     }
 }
 
+function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+}
+
 function updateDisplay() {
-    document.getElementById('jackpotAmount').textContent     = gameState.jackpot.toLocaleString();
-    document.getElementById('playerCount').textContent       = gameState.players.length;
-    document.getElementById('maxPlayersDisplay').textContent = gameState.config.maxPlayers;
-    document.getElementById('entryPriceDisplay').textContent = gameState.config.entryPrice;
-    document.getElementById('extraPrice').textContent        = gameState.config.extraPrice;
-    document.getElementById('countdownRule').textContent     = gameState.config.countdownTime;
+    setText('jackpotAmount',     gameState.jackpot.toLocaleString());
+    setText('playerCount',       gameState.players.length);
+    setText('maxPlayersDisplay', gameState.config.maxPlayers);
+    setText('entryPriceDisplay', gameState.config.entryPrice);
+    setText('extraPrice',        gameState.config.extraPrice);
+    setText('countdownRule',     gameState.config.countdownTime);
 
     const list = document.getElementById('playersList');
     if (!gameState.players.length) {
