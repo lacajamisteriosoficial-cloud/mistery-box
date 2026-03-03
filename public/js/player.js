@@ -210,12 +210,29 @@ async function fetchGameState() {
             ['confirmBtn','extraBtn','playAgainBtn'].forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById('resultScreen').classList.remove('active');
         }
-        if (gameState.currentPlayer && !gameState.currentPlayer.approved) {
+        if (gameState.currentPlayer) {
             const up = gameState.players.find(p => p.id === gameState.currentPlayer.id);
-            if (up?.approved) {
-                gameState.currentPlayer = up;
-                showNotification('¡Pago aprobado! Confirmá tu caja ✓','success');
-                document.getElementById('confirmBtn').classList.remove('hidden');
+            if (up) {
+                const wasApproved = gameState.currentPlayer.approved;
+                gameState.currentPlayer = up; // siempre sincronizar con server
+
+                // Siempre restaurar selectedBox desde el server si el local se perdió
+                if (!gameState.selectedBox && up.selectedBox) {
+                    gameState.selectedBox = up.selectedBox;
+                }
+
+                // Notificar solo la primera vez que se aprueba
+                if (!wasApproved && up.approved) {
+                    showNotification('¡Pago aprobado! Tocá la caja para confirmarla ✓','success');
+                }
+
+                // Mostrar confirmBtn si: aprobado, sin box confirmada aún, y hay caja seleccionada
+                const confirmBtn = document.getElementById('confirmBtn');
+                if (up.approved && !up.box && gameState.selectedBox) {
+                    confirmBtn.classList.remove('hidden');
+                } else if (up.box) {
+                    confirmBtn.classList.add('hidden');
+                }
             }
         }
         if (gameState.currentPlayer?.approved && gameState.currentPlayer?.box) {
@@ -369,8 +386,11 @@ function selectBox(n) {
     if (!gameState.currentPlayer) { gameState.selectedBox=n; openPaymentModal(); return; }
     if (!gameState.currentPlayer.approved) { showNotification('Esperando confirmación de pago...','warning'); return; }
     if (!gameState.currentPlayer.box) {
-        gameState.selectedBox=n; renderBoxes();
-        document.getElementById('confirmBtn').classList.remove('hidden'); return;
+        gameState.selectedBox = n;
+        renderBoxes();
+        document.getElementById('confirmBtn').classList.remove('hidden');
+        showNotification(`Caja ${String(n).padStart(2,'0')} seleccionada. Ahora confirmá tu elección ✓`, 'success');
+        return;
     }
     if (gameState.currentPlayer.hasExtra && !gameState.currentPlayer.extraBox) { submitExtraBoxSelection(n); return; }
 }
@@ -399,16 +419,23 @@ async function submitTransfer() {
 }
 
 async function confirmSelection() {
-    if (!gameState.selectedBox||!gameState.currentPlayer) return;
+    const boxToConfirm = gameState.selectedBox || gameState.currentPlayer?.selectedBox;
+    if (!gameState.currentPlayer) { showNotification('Sesión perdida, recargá la página','error'); return; }
+    if (!gameState.currentPlayer.approved) { showNotification('Tu pago aún no fue aprobado','warning'); return; }
+    if (!boxToConfirm) { showNotification('Primero tocá una caja para seleccionarla','warning'); return; }
+    gameState.selectedBox = boxToConfirm;
     try {
-        const r = await fetch(`${API_URL}/confirm-box`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({playerId:gameState.currentPlayer.id,boxNumber:gameState.selectedBox})});
+        const r = await fetch(`${API_URL}/confirm-box`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({playerId:gameState.currentPlayer.id,boxNumber:boxToConfirm})});
         if (r.ok) {
-            gameState.currentPlayer.box = gameState.selectedBox;
+            gameState.currentPlayer.box = boxToConfirm;
             document.getElementById('confirmBtn').classList.add('hidden');
             document.getElementById('extraBtn').classList.remove('hidden');
             showNotification('¡Caja confirmada! ✓','success');
             await fetchGameState();
-        } else { const e=await r.json(); showNotification(e.error||'Error','error'); }
+        } else {
+            const e = await r.json();
+            showNotification(e.error || 'Error al confirmar','error');
+        }
     } catch { showNotification('Error de conexión','error'); }
 }
 
