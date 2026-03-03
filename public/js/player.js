@@ -213,16 +213,13 @@ async function fetchGameState() {
         if (gameState.currentPlayer && !gameState.currentPlayer.approved) {
             const up = gameState.players.find(p => p.id === gameState.currentPlayer.id);
             if (up?.approved) {
-                // Preserve selectedBox before updating currentPlayer
-                const savedBox = gameState.selectedBox || gameState.currentPlayer.selectedBox;
-                gameState.currentPlayer = { ...up };
-                if (savedBox && !gameState.currentPlayer.box) {
-                    gameState.selectedBox = savedBox;
+                gameState.currentPlayer = up;
+                // Restaurar selectedBox desde el servidor si se perdió localmente
+                if (!gameState.selectedBox && up.selectedBox) {
+                    gameState.selectedBox = up.selectedBox;
                 }
-                showNotification('¡Pago aprobado! Seleccioná y confirmá tu caja ✓','success');
-                if (gameState.selectedBox && !gameState.currentPlayer.box) {
-                    document.getElementById('confirmBtn').classList.remove('hidden');
-                }
+                showNotification('¡Pago aprobado! Confirmá tu caja ✓','success');
+                document.getElementById('confirmBtn').classList.remove('hidden');
                 renderBoxes();
             }
         }
@@ -375,18 +372,14 @@ function selectBox(n) {
     const pending = gameState.players.find(p => p.selectedBox===n && !p.approved);
     if (pending && pending.id !== gameState.currentPlayer?.id) { showNotification('Esa caja está pendiente','warning'); return; }
     if (!gameState.currentPlayer) { gameState.selectedBox=n; openPaymentModal(); return; }
-    // Waiting for payment approval — only show pending message if they click a different box
-    if (!gameState.currentPlayer.approved) { 
-        showNotification('Esperando confirmación de pago...','warning'); 
-        return; 
-    }
-    // Approved but hasn't confirmed box yet — allow changing selection
+    if (!gameState.currentPlayer.approved) { showNotification('Esperando confirmación de pago...','warning'); return; }
+    // Aprobado pero todavía no confirmó caja — puede elegir o cambiar su selección
     if (!gameState.currentPlayer.box) {
-        gameState.selectedBox=n; renderBoxes();
-        document.getElementById('confirmBtn').classList.remove('hidden'); 
+        gameState.selectedBox = n;
+        renderBoxes();
+        document.getElementById('confirmBtn').classList.remove('hidden');
         return;
     }
-    // Has main box, buying extra
     if (gameState.currentPlayer.hasExtra && !gameState.currentPlayer.extraBox) { submitExtraBoxSelection(n); return; }
 }
 
