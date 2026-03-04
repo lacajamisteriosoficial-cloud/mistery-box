@@ -628,3 +628,167 @@ function showNotification(msg,type='info'){
     t.textContent=msg; document.body.appendChild(t);
     setTimeout(()=>t.remove(),3500);
 }
+// ══════════════════════════════════════════════════════════════
+// CHAT PÚBLICO
+// ══════════════════════════════════════════════════════════════
+const CHAT_SESSION_KEY = 'mb_chat_session';
+let chatState = { sessionId: null, name: null, open: false, waitingReply: false };
+let chatEventSource = null;
+let chatWindowOpen = false;
+let chatUnread = 0;
+
+function getChatSession() {
+    try { return JSON.parse(localStorage.getItem(CHAT_SESSION_KEY)); } catch(e) { return null; }
+}
+function saveChatSession(data) {
+    localStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(data));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Restaurar sesión de chat si existe
+    const saved = getChatSession();
+    if (saved && saved.sessionId && saved.name) {
+        chatState.sessionId = saved.sessionId;
+        chatState.name = saved.name;
+        restoreChatSession();
+    }
+});
+
+function toggleChat() {
+    chatWindowOpen = !chatWindowOpen;
+    const win = document.getElementById('chatWindow');
+    win.classList.toggle('open', chatWindowOpen);
+    if (chatWindowOpen) {
+        chatUnread = 0;
+        document.getElementById('chatUnreadBadge').classList.add('hidden');
+    }
+}
+
+async function startChat() {
+    const nameInput = document.getElementById('chatNameInput');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.focus(); return; }
+
+    // Generar sessionId único
+    const sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+    chatState.sessionId = sessionId;
+    chatState.name = name;
+    saveChatSession({ sessionId, name });
+
+    try {
+        const r = await fetch('/api/chat/init', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ sessionId, name })
+        });
+        const data = await r.json();
+        showChatMessagesScreen(data);
+        subscribeChatStream(sessionId);
+    } catch(e) {
+        alert('Error al conectar el chat. Intentá de nuevo.');
+    }
+}
+
+async function restoreChatSession() {
+    try {
+        const r = await fetch(`/api/chat/session/${chatState.sessionId}`);
+        if (!r.ok) { localStorage.removeItem(CHAT_SESSION_KEY); return; }
+        const data = await r.json();
+        // Mostrar pantalla de mensajes directamente
+        document.getElementById('chatNameScreen').style.display = 'none';
+        document.getElementById('chatMessagesScreen').style.display = 'flex';
+        renderChatMessages(data);
+        subscribeChatStream(chatState.sessionId);
+    } catch(e) {}
+}
+
+function subscribeChatStream(sessionId) {
+    if (chatEventSource) chatEventSource.close();
+    chatEventSource = new EventSource(`/api/chat/player-stream/${sessionId}`);
+    chatEventSource.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        chatState.waitingReply = data.waitingReply;
+        chatState.open = data.open;
+        renderChatMessages(data);
+        // Badge si la ventana está cerrada y llegó mensaje del admin
+        if (!chatWindowOpen && data.messages.length > 0) {
+            const last = data.messages[data.messages.length - 1];
+            if (last.from === 'admin') {
+                chatUnread++;
+                const badge = document.getElementById('chatUnreadBadge');
+                badge.textContent = chatUnread;
+                badge.classList.remove('hidden');
+            }
+        }
+    };
+    chatEventSource.onerror = () => {};
+}
+
+function showChatMessagesScreen(data) {
+    document.getElementById('chatNameScreen').style.display = 'none';
+    document.getElementById('chatMessagesScreen').style.display = 'flex';
+    renderChatMessages(data);
+}
+
+function renderChatMessages(data) {
+    const container = document.getElementById('chatMessages');
+    const waitingMsg = document.getElementById('chatWaitingMsg');
+    const closedMsg = document.getElementById('chatClosedMsg');
+    const inputArea = document.getElementById('chatInputArea');
+    const sendBtn = document.getElementById('chatSendBtn');
+
+    // Mensajes
+    container.innerHTML = '';
+    if (data.messages.length === 0) {
+        container.innerHTML = '<div class="chat-system-msg">Envianos tu consulta, te respondemos enseguida 👋</div>';
+    }
+    data.messages.forEach(m => {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${m.from}`;
+        const time = new Date(m.ts).toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+        bubble.innerHTML = `${escapeHtml(m.text)}<div class="chat-bubble-time">${time}${m.from==='admin'?' ✓✓':' ✓'}</div>`;
+        container.appendChild(bubble);
+    });
+    container.scrollTop = container.scrollHeight;
+
+    // Estados
+    if (!data.open) {
+        closedMsg.classList.remove('hidden');
+        inputArea.style.display = 'none';
+        waitingMsg.classList.add('hidden');
+    } else if (data.waitingReply) {
+        waitingMsg.classList.remove('hidden');
+        sendBtn.disabled = true;
+        document.getElementById('chatInput').disabled = true;
+    } else {
+        waitingMsg.classList.add('hidden');
+        sendBtn.disabled = false;
+        document.getElementById('chatInput').disabled = false;
+    }
+}
+
+async function sendChatMsg() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text || !chatState.sessionId) return;
+    input.value = '';
+
+    try {
+        const r = await fetch('/api/chat/send', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ sessionId: chatState.sessionId, text })
+        });
+        const data = await r.json();
+        if (!r.ok) {
+            showNotification(data.error || 'Error al enviar', 'error');
+            input.value = text; // restaurar texto
+        }
+    } catch(e) {
+        showNotification('Error de conexión', 'error');
+    }
+}
+
+function escapeHtml(text) {
+    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}

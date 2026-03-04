@@ -241,6 +241,237 @@
     line-height: 1.5;
     color: #e2e8f0;
 }
+
+/* ══════════════════════════════════════════
+   CHAT FLOTANTE PÚBLICO
+   ══════════════════════════════════════════ */
+.chat-fab {
+    position: fixed;
+    bottom: 24px;
+    left: 20px;
+    z-index: 810;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+.chat-fab-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+    color: white;
+    border: none;
+    padding: 10px 16px 10px 12px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 700;
+    box-shadow: 0 4px 20px rgba(37,211,102,0.45);
+    transition: all 0.3s;
+    border: 1.5px solid rgba(255,255,255,0.2);
+}
+.chat-fab-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(37,211,102,0.55); }
+.chat-fab-icon {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2em; flex-shrink: 0;
+}
+.chat-unread-badge {
+    position: absolute;
+    top: -4px; right: -4px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    width: 18px; height: 18px;
+    font-size: 0.7em;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900;
+}
+.chat-fab-btn { position: relative; }
+
+/* Ventana de chat */
+.chat-window {
+    position: fixed;
+    bottom: 90px;
+    left: 20px;
+    width: 320px;
+    height: 440px;
+    background: #0b141a;
+    border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 850;
+    border: 1px solid rgba(255,255,255,0.1);
+    transform: scale(0.92) translateY(10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s ease;
+}
+.chat-window.open {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    pointer-events: all;
+}
+.chat-header {
+    background: #1f2c34;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.chat-avatar {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2em; flex-shrink: 0;
+}
+.chat-header-info { flex: 1; }
+.chat-header-name { font-weight: 700; font-size: 0.95em; color: #e9edef; }
+.chat-header-status { font-size: 0.72em; color: #8696a0; margin-top: 1px; }
+.chat-close-btn {
+    background: none; border: none; color: #8696a0;
+    cursor: pointer; font-size: 1.2em; padding: 4px;
+    transition: color 0.2s;
+}
+.chat-close-btn:hover { color: #e9edef; }
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #0b141a;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-track { background: transparent; }
+.chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+.chat-bubble {
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.85em;
+    line-height: 1.4;
+    position: relative;
+    word-break: break-word;
+}
+.chat-bubble.player {
+    background: #005c4b;
+    color: #e9edef;
+    align-self: flex-end;
+    border-bottom-right-radius: 3px;
+}
+.chat-bubble.admin {
+    background: #1f2c34;
+    color: #e9edef;
+    align-self: flex-start;
+    border-bottom-left-radius: 3px;
+}
+.chat-bubble-time {
+    font-size: 0.65em;
+    opacity: 0.55;
+    margin-top: 3px;
+    text-align: right;
+}
+.chat-system-msg {
+    text-align: center;
+    font-size: 0.72em;
+    color: #8696a0;
+    background: rgba(255,255,255,0.04);
+    padding: 4px 10px;
+    border-radius: 8px;
+    margin: 4px auto;
+}
+.chat-input-area {
+    background: #1f2c34;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+}
+.chat-input {
+    flex: 1;
+    background: #2a3942;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 14px;
+    color: #e9edef;
+    font-size: 0.88em;
+    outline: none;
+    resize: none;
+    max-height: 80px;
+    font-family: inherit;
+}
+.chat-input::placeholder { color: #8696a0; }
+.chat-send-btn {
+    width: 36px; height: 36px;
+    background: #00a884;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1em;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+.chat-send-btn:hover { background: #06cf9c; }
+.chat-send-btn:disabled { background: #2a3942; cursor: not-allowed; }
+.chat-name-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    gap: 12px;
+    background: #0b141a;
+}
+.chat-name-screen p { color: #8696a0; font-size: 0.85em; text-align: center; line-height: 1.5; }
+.chat-name-input {
+    width: 100%;
+    background: #2a3942;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #e9edef;
+    font-size: 0.9em;
+    outline: none;
+    font-family: inherit;
+}
+.chat-name-input::placeholder { color: #8696a0; }
+.chat-start-btn {
+    width: 100%;
+    background: #00a884;
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background 0.2s;
+}
+.chat-start-btn:hover { background: #06cf9c; }
+.chat-waiting-msg {
+    text-align: center;
+    font-size: 0.75em;
+    color: #8696a0;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.03);
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+@media (max-width: 480px) {
+    .chat-window { width: calc(100vw - 24px); left: 12px; }
+}
 </style>
 </head>
 <body>
@@ -484,6 +715,51 @@
     </div>
     <div class="tg-label">¿Tenés dudas? Escribinos</div>
 </a>
+
+
+<!-- ══════════════════════════════════
+     CHAT FLOTANTE
+     ══════════════════════════════════ -->
+<div class="chat-fab">
+    <button class="chat-fab-btn" onclick="toggleChat()">
+        <div class="chat-fab-icon">💬</div>
+        <span>¿Tenés dudas? Escribinos</span>
+        <span class="chat-unread-badge hidden" id="chatUnreadBadge">1</span>
+    </button>
+</div>
+
+<div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+        <div class="chat-avatar">🎁</div>
+        <div class="chat-header-info">
+            <div class="chat-header-name">Soporte - Caja Misteriosa</div>
+            <div class="chat-header-status" id="chatHeaderStatus">En línea</div>
+        </div>
+        <button class="chat-close-btn" onclick="toggleChat()">✕</button>
+    </div>
+
+    <!-- Pantalla de nombre -->
+    <div class="chat-name-screen" id="chatNameScreen">
+        <div style="font-size:2.5em;">💬</div>
+        <p>¿Tenés alguna duda sobre el juego?<br>Escribinos y te respondemos enseguida.</p>
+        <input class="chat-name-input" id="chatNameInput" placeholder="Tu apodo o nombre..." maxlength="20">
+        <button class="chat-start-btn" onclick="startChat()">Iniciar chat →</button>
+    </div>
+
+    <!-- Pantalla de mensajes -->
+    <div id="chatMessagesScreen" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-waiting-msg hidden" id="chatWaitingMsg">⏳ Esperando respuesta del operador...</div>
+        <div class="chat-closed-msg hidden" id="chatClosedMsg" style="text-align:center;padding:10px;font-size:0.8em;color:#ef4444;background:rgba(239,68,68,0.1);">
+            🔒 Esta conversación fue cerrada por el operador.
+        </div>
+        <div class="chat-input-area" id="chatInputArea">
+            <textarea class="chat-input" id="chatInput" placeholder="Escribí tu mensaje..." rows="1"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMsg();}"></textarea>
+            <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMsg()">➤</button>
+        </div>
+    </div>
+</div>
 
 <!-- ══════════════════════════════════
      CARTEL FLOTANTE CERRADO

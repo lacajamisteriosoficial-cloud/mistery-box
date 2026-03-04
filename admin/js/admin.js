@@ -506,3 +506,156 @@ function showNotification(message, type = 'info') {
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
+// ══════════════════════════════════════════════════════════════
+// CHAT ADMIN
+// ══════════════════════════════════════════════════════════════
+let chatPanelOpen = false;
+let chatSessions = [];
+let activeSessionId = null;
+let chatAdminStream = null;
+let chatNewMsgCount = 0;
+
+document.addEventListener('DOMContentLoaded', () => {
+    initAdminChat();
+});
+
+function initAdminChat() {
+    if (chatAdminStream) chatAdminStream.close();
+    chatAdminStream = new EventSource('/api/chat/admin-stream');
+    chatAdminStream.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        const prevCount = chatSessions.reduce((acc, s) => acc + (s.waitingReply ? 1 : 0), 0);
+        chatSessions = data.sessions || [];
+        const newCount = chatSessions.reduce((acc, s) => acc + (s.waitingReply ? 1 : 0), 0);
+
+        renderConvList();
+        if (activeSessionId) renderActiveConv();
+
+        // Badge de notificación
+        if (newCount > 0) {
+            const badge = document.getElementById('chatNotifBadge');
+            badge.textContent = newCount;
+            badge.classList.add('show');
+            if (newCount > prevCount && !chatPanelOpen) {
+                showNotification(`💬 Nuevo mensaje de jugador`, 'info');
+            }
+        } else {
+            document.getElementById('chatNotifBadge').classList.remove('show');
+        }
+    };
+    chatAdminStream.onerror = () => {};
+}
+
+function toggleChatPanel() {
+    chatPanelOpen = !chatPanelOpen;
+    document.getElementById('chatSidePanel').classList.toggle('open', chatPanelOpen);
+    if (chatPanelOpen) {
+        document.getElementById('chatNotifBadge').classList.remove('show');
+    }
+}
+
+function renderConvList() {
+    const list = document.getElementById('chatConvList');
+    if (!chatSessions.length) {
+        list.innerHTML = '<div style="padding:20px;text-align:center;color:#8696a0;font-size:0.85em;">No hay conversaciones aún...</div>';
+        return;
+    }
+    list.innerHTML = chatSessions.map(s => {
+        const lastMsg = s.messages.length ? s.messages[s.messages.length - 1] : null;
+        const preview = lastMsg ? lastMsg.text.substring(0, 35) + (lastMsg.text.length > 35 ? '...' : '') : 'Sin mensajes';
+        const time = lastMsg ? new Date(lastMsg.ts).toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'}) : '';
+        const isActive = s.sessionId === activeSessionId;
+        const hasPending = s.waitingReply && !s.closed;
+        return `
+        <div class="chat-conv-item ${isActive ? 'active' : ''} ${!s.open ? 'chat-conv-closed' : ''}"
+             onclick="selectConv('${s.sessionId}')">
+            <div class="chat-conv-avatar">
+                👤
+                ${hasPending ? '<div class="chat-conv-unread-dot"></div>' : ''}
+            </div>
+            <div class="chat-conv-info">
+                <div class="chat-conv-name">${escapeAdminHtml(s.name)} ${!s.open ? '🔒' : ''}</div>
+                <div class="chat-conv-preview">${escapeAdminHtml(preview)}</div>
+            </div>
+            <div class="chat-conv-time">${time}</div>
+        </div>`;
+    }).join('');
+}
+
+function selectConv(sessionId) {
+    activeSessionId = sessionId;
+    renderConvList();
+    renderActiveConv();
+    document.getElementById('chatEmptyState').style.display = 'none';
+    document.getElementById('chatActiveConv').style.display = 'flex';
+    setTimeout(() => {
+        const msgs = document.getElementById('chatAdminMessages');
+        msgs.scrollTop = msgs.scrollHeight;
+        document.getElementById('chatAdminInput').focus();
+    }, 50);
+}
+
+function renderActiveConv() {
+    const session = chatSessions.find(s => s.sessionId === activeSessionId);
+    if (!session) return;
+
+    document.getElementById('chatActivePlayerName').textContent = '👤 ' + session.name;
+    const container = document.getElementById('chatAdminMessages');
+    container.innerHTML = '';
+
+    if (!session.messages.length) {
+        container.innerHTML = '<div style="text-align:center;color:#8696a0;font-size:0.8em;padding:20px;">Sin mensajes aún</div>';
+    }
+
+    session.messages.forEach(m => {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${m.from === 'admin' ? 'player' : 'admin'}`;
+        const time = new Date(m.ts).toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+        const label = m.from === 'admin' ? '🛡️ Vos' : `👤 ${session.name}`;
+        bubble.innerHTML = `<div style="font-size:0.7em;opacity:0.6;margin-bottom:3px;">${label}</div>${escapeAdminHtml(m.text)}<div class="chat-bubble-time">${time}</div>`;
+        container.appendChild(bubble);
+    });
+    container.scrollTop = container.scrollHeight;
+
+    // Input habilitado solo si la conv está abierta
+    const input = document.getElementById('chatAdminInput');
+    input.disabled = !session.open;
+    input.placeholder = session.open ? 'Escribí tu respuesta...' : 'Conversación cerrada';
+}
+
+async function adminSendReply() {
+    const input = document.getElementById('chatAdminInput');
+    const text = input.value.trim();
+    if (!text || !activeSessionId) return;
+    input.value = '';
+    try {
+        const r = await fetch('/api/chat/reply', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ sessionId: activeSessionId, text })
+        });
+        if (!r.ok) showNotification('Error al enviar respuesta', 'error');
+    } catch(e) {
+        showNotification('Error de conexión', 'error');
+    }
+}
+
+async function closeChatConv() {
+    if (!activeSessionId) return;
+    if (!confirm('¿Cerrar esta conversación? El jugador no podrá seguir escribiendo.')) return;
+    try {
+        await fetch('/api/chat/close', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ sessionId: activeSessionId })
+        });
+        showNotification('Conversación cerrada', 'info');
+    } catch(e) {
+        showNotification('Error', 'error');
+    }
+}
+
+function escapeAdminHtml(text) {
+    if (!text) return '';
+    return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
