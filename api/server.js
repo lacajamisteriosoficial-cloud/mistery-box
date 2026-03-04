@@ -353,6 +353,34 @@ function scheduleAutoReset() {
     timers.autoReset = setTimeout(() => resetRound(false), 12000);
 }
 
+
+// Reabrir conversación (desbloquear)
+app.post('/api/chat/reopen', (req, res) => {
+    const { sessionId } = req.body;
+    const session = chatSessions[sessionId];
+    if (!session) return res.status(404).json({error: 'No encontrada'});
+    session.open = true;
+    session.waitingReply = false;
+    if (chatPlayerStreams[sessionId]) {
+        try { chatPlayerStreams[sessionId].write(`data: ${JSON.stringify(session)}\n\n`); } catch(e) {}
+    }
+    broadcastChatUpdate();
+    res.json({success: true});
+});
+
+// Eliminar conversación
+app.post('/api/chat/delete', (req, res) => {
+    const { sessionId } = req.body;
+    if (!chatSessions[sessionId]) return res.status(404).json({error: 'No encontrada'});
+    // Notificar al jugador que fue eliminada
+    if (chatPlayerStreams[sessionId]) {
+        try { chatPlayerStreams[sessionId].write(`data: ${JSON.stringify({deleted: true})}\n\n`); } catch(e) {}
+    }
+    delete chatSessions[sessionId];
+    broadcastChatUpdate();
+    res.json({success: true});
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
 

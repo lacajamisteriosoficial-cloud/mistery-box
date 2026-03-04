@@ -617,10 +617,14 @@ function renderActiveConv() {
     });
     container.scrollTop = container.scrollHeight;
 
-    // Input habilitado solo si la conv está abierta
+    // Input y botones según estado
     const input = document.getElementById('chatAdminInput');
     input.disabled = !session.open;
-    input.placeholder = session.open ? 'Escribí tu respuesta...' : 'Conversación cerrada';
+    input.placeholder = session.open ? 'Escribí tu respuesta...' : 'Conversación bloqueada';
+    const btnReopen = document.getElementById('chatBtnReopen');
+    const btnClose  = document.getElementById('chatBtnClose');
+    if (btnReopen) btnReopen.classList.toggle('hidden', session.open);
+    if (btnClose)  btnClose.classList.toggle('hidden', !session.open);
 }
 
 async function adminSendReply() {
@@ -638,6 +642,34 @@ async function adminSendReply() {
     } catch(e) {
         showNotification('Error de conexión', 'error');
     }
+}
+
+async function reopenChatConv() {
+    if (!activeSessionId) return;
+    try {
+        await fetch('/api/chat/reopen', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ sessionId: activeSessionId })
+        });
+        showNotification('🔓 Conversación reabierta', 'success');
+    } catch(e) { showNotification('Error', 'error'); }
+}
+
+async function deleteChatConv() {
+    if (!activeSessionId) return;
+    if (!confirm('¿Eliminar esta conversación? No se puede deshacer.')) return;
+    try {
+        await fetch('/api/chat/delete', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ sessionId: activeSessionId })
+        });
+        activeSessionId = null;
+        document.getElementById('chatActiveConv').style.display = 'none';
+        document.getElementById('chatEmptyState').style.display = 'flex';
+        showNotification('🗑️ Conversación eliminada', 'info');
+    } catch(e) { showNotification('Error', 'error'); }
 }
 
 async function closeChatConv() {

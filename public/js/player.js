@@ -707,6 +707,16 @@ function subscribeChatStream(sessionId) {
     chatEventSource = new EventSource(`/api/chat/player-stream/${sessionId}`);
     chatEventSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
+        // Si la conv fue eliminada por el admin
+        if (data.deleted) {
+            localStorage.removeItem(CHAT_SESSION_KEY);
+            chatState.sessionId = null;
+            // Volver a pantalla de nombre
+            document.getElementById('chatMessagesScreen').style.display = 'none';
+            document.getElementById('chatNameScreen').style.display = 'flex';
+            document.getElementById('chatNameInput').value = '';
+            return;
+        }
         chatState.waitingReply = data.waitingReply;
         chatState.open = data.open;
         renderChatMessages(data);
