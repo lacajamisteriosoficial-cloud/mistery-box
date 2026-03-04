@@ -5,7 +5,7 @@ let gameState = {
     jackpot: 0, selectedBox: null, currentPlayer: null,
     resultShown: false, waitingForNewRound: false,
     config: { entryPrice:500, extraPrice:1000, minPlayers:2, maxPlayers:10,
-              totalBoxes:20, countdownTime:3, alias:'elnomad.mp' }
+              totalBoxes:20, countdownTime:3, alias:'caja.misteriosa.mp' }
 };
 let lastJackpot = 0;
 

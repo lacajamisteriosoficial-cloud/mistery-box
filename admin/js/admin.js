@@ -16,7 +16,7 @@ let gameState = {
         totalBoxes: 20,
         commissionPercent: 20,
         countdownTime: 3,
-        alias: 'elnomad.mp',
+        alias: 'caja.misteriosa.mp',
         schedule: {
             enabled: false,
             openHour: 0,
