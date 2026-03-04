@@ -1,10 +1,31 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// ── Persistencia de config en archivo JSON ────────────────────────────
+const CONFIG_FILE = path.join(__dirname, 'config.json');
+
+function loadConfig() {
+    try {
+        if (fs.existsSync(CONFIG_FILE)) {
+            return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+        }
+    } catch(e) { console.error('Error leyendo config:', e); }
+    return null;
+}
+
+function saveConfig(config) {
+    try {
+        fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+    } catch(e) { console.error('Error guardando config:', e); }
+}
+
+const savedConfig = loadConfig();
 
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -27,6 +48,23 @@ app.use('/admin', (req, res, next) => {
 });
 app.use('/admin', express.static(path.join(__dirname, '../admin')));
 
+const defaultConfig = {
+    entryPrice: 500,
+    extraPrice: 1000,
+    minPlayers: 2,
+    maxPlayers: 10,
+    totalBoxes: 20,
+    commissionPercent: 20,
+    countdownTime: 3,
+    alias: 'caja.misteriosa.mp',
+    closedMessage: 'Volvé pronto, el juego está pausado.',
+    schedule: {
+        enabled: false,
+        openHour: 0,
+        closeHour: 23
+    }
+};
+
 let gameState = {
     status: 'OPEN',
     players: [],
@@ -39,22 +77,8 @@ let gameState = {
     winningBox: null,
     lastPrize: null,
     pendingTransfers: [],
-    winnersHistory: [], // ← NUEVO: historial de ganadores
-    config: {
-        entryPrice: 500,
-        extraPrice: 1000,
-        minPlayers: 2,
-        maxPlayers: 10,
-        totalBoxes: 20,
-        commissionPercent: 20,
-        countdownTime: 3,
-        alias: 'caja.misteriosa.mp',
-        schedule: {
-            enabled: false,
-            openHour: 0,
-            closeHour: 23
-        }
-    }
+    winnersHistory: [],
+    config: savedConfig ? { ...defaultConfig, ...savedConfig } : { ...defaultConfig }
 };
 
 let timers = {};
@@ -66,12 +90,8 @@ let adminViewerStreams = [];
 function broadcastViewerCount() {
     const count = viewerConnections.length;
     const payload = `data: ${JSON.stringify({ viewers: count })}\n\n`;
-    adminViewerStreams.forEach(res => {
-        try { res.write(payload); } catch(e) {}
-    });
-    viewerConnections.forEach(res => {
-        try { res.write(payload); } catch(e) {}
-    });
+    adminViewerStreams.forEach(res => { try { res.write(payload); } catch(e) {} });
+    viewerConnections.forEach(res => { try { res.write(payload); } catch(e) {} });
 }
 
 app.get('/api/viewers/connect', (req, res) => {
@@ -79,14 +99,9 @@ app.get('/api/viewers/connect', (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
-
     viewerConnections.push(res);
     broadcastViewerCount();
-
-    const heartbeat = setInterval(() => {
-        try { res.write(': ping\n\n'); } catch(e) {}
-    }, 25000);
-
+    const heartbeat = setInterval(() => { try { res.write(': ping\n\n'); } catch(e) {} }, 25000);
     req.on('close', () => {
         clearInterval(heartbeat);
         viewerConnections = viewerConnections.filter(c => c !== res);
@@ -99,14 +114,9 @@ app.get('/api/viewers/admin-stream', (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
-
     res.write(`data: ${JSON.stringify({ viewers: viewerConnections.length })}\n\n`);
     adminViewerStreams.push(res);
-
-    const heartbeat = setInterval(() => {
-        try { res.write(': ping\n\n'); } catch(e) {}
-    }, 25000);
-
+    const heartbeat = setInterval(() => { try { res.write(': ping\n\n'); } catch(e) {} }, 25000);
     req.on('close', () => {
         clearInterval(heartbeat);
         adminViewerStreams = adminViewerStreams.filter(c => c !== res);
@@ -135,17 +145,16 @@ app.get('/api/state', (req, res) => {
         config: gameState.config,
         pendingTransfers: gameState.pendingTransfers,
         inSchedule: isWithinSchedule(),
-        winnersHistory: gameState.winnersHistory // ← exponer historial
+        winnersHistory: gameState.winnersHistory
     });
 });
 
-// ← NUEVO: endpoint para obtener solo el historial
 app.get('/api/winners-history', (req, res) => {
     res.json({ winnersHistory: gameState.winnersHistory });
 });
 
 app.post('/api/request-entry', (req, res) => {
-    const { name, operationId, boxNumber, mpAlias } = req.body; // ← mpAlias nuevo
+    const { name, operationId, boxNumber, mpAlias } = req.body;
     if (!isWithinSchedule()) return res.status(400).json({error: 'Fuera de horario de juego'});
     if (gameState.status !== 'OPEN') return res.status(400).json({error: 'La sala está cerrada'});
     if (gameState.players.length >= gameState.config.maxPlayers) return res.status(400).json({error: 'Sala completa'});
@@ -153,23 +162,17 @@ app.post('/api/request-entry', (req, res) => {
 
     const player = {
         id: Date.now().toString(),
-        name,
-        mpAlias: mpAlias || '', // ← guardar alias MP
-        box: null,
-        extraBox: null,
-        hasExtra: false,
-        approved: false,
+        name, mpAlias: mpAlias || '',
+        box: null, extraBox: null,
+        hasExtra: false, approved: false,
         selectedBox: boxNumber
     };
     const transfer = {
         id: Date.now().toString(),
-        playerId: player.id,
-        name,
-        mpAlias: mpAlias || '', // ← guardar en transfer también
-        operationId,
+        playerId: player.id, name,
+        mpAlias: mpAlias || '', operationId,
         amount: gameState.config.entryPrice,
-        type: 'entry',
-        boxNumber: boxNumber,
+        type: 'entry', boxNumber,
         timestamp: new Date().toISOString(),
         approved: false
     };
@@ -182,13 +185,10 @@ app.post('/api/request-extra', (req, res) => {
     const { playerId, operationId } = req.body;
     const player = gameState.players.find(p => p.id === playerId);
     if (!player || player.hasExtra) return res.status(400).json({error: 'No permitido'});
-
     const transfer = {
         id: Date.now().toString(),
-        playerId,
-        name: player.name,
-        mpAlias: player.mpAlias || '',
-        operationId,
+        playerId, name: player.name,
+        mpAlias: player.mpAlias || '', operationId,
         amount: gameState.config.extraPrice,
         type: 'extra',
         timestamp: new Date().toISOString(),
@@ -203,7 +203,6 @@ app.post('/api/confirm-box', (req, res) => {
     const player = gameState.players.find(p => p.id === playerId);
     if (!player || !player.approved) return res.status(400).json({error: 'No autorizado'});
     if (gameState.boxes[boxNumber]) return res.status(400).json({error: 'Caja ocupada'});
-
     gameState.boxes[boxNumber] = playerId;
     player.box = boxNumber;
     checkAllSelected();
@@ -215,7 +214,6 @@ app.post('/api/select-extra-box', (req, res) => {
     const player = gameState.players.find(p => p.id === playerId);
     if (!player || !player.hasExtra || player.extraBox) return res.status(400).json({error: 'No permitido'});
     if (gameState.boxes[boxNumber] || gameState.extraBoxes[boxNumber]) return res.status(400).json({error: 'Caja ocupada'});
-
     gameState.extraBoxes[boxNumber] = playerId;
     player.extraBox = boxNumber;
     res.json({success: true});
@@ -225,7 +223,6 @@ app.post('/api/approve-transfer', (req, res) => {
     const { transferId } = req.body;
     const transfer = gameState.pendingTransfers.find(t => t.id === transferId);
     if (!transfer) return res.status(404).json({error: 'No encontrada'});
-
     transfer.approved = true;
     const player = gameState.players.find(p => p.id === transfer.playerId);
     if (transfer.type === 'entry') {
@@ -252,7 +249,9 @@ app.post('/api/reject-transfer', (req, res) => {
 });
 
 app.post('/api/config', (req, res) => {
-    gameState.config = {...gameState.config, ...req.body};
+    gameState.config = { ...gameState.config, ...req.body };
+    // ← Guardar en archivo para que persista entre reinicios
+    saveConfig(gameState.config);
     res.json({config: gameState.config});
 });
 
@@ -267,6 +266,14 @@ app.post('/api/force-start', (req, res) => {
 
 app.post('/api/reset', (req, res) => {
     resetRound(true);
+    res.json({success: true});
+});
+
+app.post('/api/mark-transferred', (req, res) => {
+    const { roundId } = req.body;
+    const entry = gameState.winnersHistory.find(w => w.roundId === roundId);
+    if (!entry) return res.status(404).json({error: 'No encontrado'});
+    entry.transferred = true;
     res.json({success: true});
 });
 
@@ -291,8 +298,7 @@ function checkAllSelected() {
     const approvedPlayers = gameState.players.filter(p => p.approved);
     const playersWithBox = approvedPlayers.filter(p => p.box);
     if (playersWithBox.length >= gameState.config.minPlayers && gameState.status === 'OPEN') {
-        const allSelected = playersWithBox.length === approvedPlayers.length;
-        if (allSelected) startCountdown();
+        if (playersWithBox.length === approvedPlayers.length) startCountdown();
     }
 }
 
@@ -300,8 +306,7 @@ function startCountdown() {
     gameState.status = 'COUNTDOWN';
     gameState.countdownEnd = Date.now() + (gameState.config.countdownTime * 1000);
     timers.countdown = setInterval(() => {
-        const remaining = gameState.countdownEnd - Date.now();
-        if (remaining <= 0) {
+        if (gameState.countdownEnd - Date.now() <= 0) {
             clearInterval(timers.countdown);
             closeRound();
         }
@@ -316,7 +321,6 @@ function closeRound() {
 function drawWinner() {
     const winningBox = Math.floor(Math.random() * gameState.config.totalBoxes) + 1;
     gameState.winningBox = winningBox;
-
     const winnerId = gameState.boxes[winningBox] || gameState.extraBoxes[winningBox];
 
     if (winnerId) {
@@ -325,23 +329,18 @@ function drawWinner() {
         gameState.winner = gameState.players.find(p => p.id === winnerId);
         gameState.winner.prize = prize;
         gameState.lastPrize = prize;
-
-        // ← NUEVO: guardar en historial
         gameState.winnersHistory.unshift({
             roundId: Date.now().toString(),
             timestamp: new Date().toISOString(),
             name: gameState.winner.name,
             mpAlias: gameState.winner.mpAlias || '—',
-            prize: prize,
-            winningBox: winningBox,
-            transferred: false // el admin lo marca como transferido
+            prize, winningBox,
+            transferred: false
         });
-
         gameState.jackpot = 0;
     } else {
         const commission = gameState.roundFund * (gameState.config.commissionPercent / 100);
-        const accumulated = gameState.roundFund - commission;
-        gameState.jackpot += accumulated;
+        gameState.jackpot += gameState.roundFund - commission;
         gameState.lastPrize = null;
         gameState.winner = null;
     }
@@ -350,22 +349,9 @@ function drawWinner() {
     scheduleAutoReset();
 }
 
-// ← NUEVO: marcar ganador como transferido
-app.post('/api/mark-transferred', (req, res) => {
-    const { roundId } = req.body;
-    const entry = gameState.winnersHistory.find(w => w.roundId === roundId);
-    if (!entry) return res.status(404).json({error: 'No encontrado'});
-    entry.transferred = true;
-    res.json({success: true});
-});
-
 function scheduleAutoReset() {
-    timers.autoReset = setTimeout(() => {
-        resetRound(false);
-    }, 12000);
+    timers.autoReset = setTimeout(() => resetRound(false), 12000);
 }
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Servidor en puerto ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));

@@ -249,7 +249,20 @@ async function fetchGameState() {
         // Actualizar últimos ganadores
         if (data.winnersHistory) renderUltimosGanadores(data.winnersHistory);
 
-        document.getElementById('scheduleClosed').classList.toggle('hidden', data.inSchedule !== false);
+        // Cartel flotante cerrado
+        const overlay = document.getElementById('closedOverlay');
+        const msgEl   = document.getElementById('closedMsg');
+        if (overlay) {
+            if (data.inSchedule === false) {
+                if (msgEl && data.config.closedMessage) msgEl.textContent = data.config.closedMessage;
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+        // Barra vieja (por compatibilidad)
+        const oldBar = document.getElementById('scheduleClosed');
+        if (oldBar) oldBar.classList.toggle('hidden', data.inSchedule !== false);
         if (data.countdownEnd && gameState.status === 'COUNTDOWN') updateTimer(data.countdownEnd);
 
         updateDisplay();
@@ -465,6 +478,11 @@ function openPaymentModal() {
     document.getElementById('selectedBoxNumber').textContent = gameState.selectedBox;
     document.getElementById('modalEntryPrice').textContent   = gameState.config.entryPrice;
     document.getElementById('modalAlias').textContent        = gameState.config.alias;
+    // También actualizar el extra modal por si ya estaba abierto
+    const ePrice = document.getElementById('extraModalPrice');
+    const eAlias = document.getElementById('extraModalAlias');
+    if (ePrice) ePrice.textContent = gameState.config.extraPrice;
+    if (eAlias) eAlias.textContent = gameState.config.alias;
 }
 function closePaymentModal() { document.getElementById('paymentModal').classList.remove('active'); }
 function copyAlias() { navigator.clipboard.writeText(gameState.config.alias).then(()=>showNotification('Alias copiado ✓','success')); }

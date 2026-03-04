@@ -192,6 +192,8 @@ function updateConfigDisplay() {
     document.getElementById('configCommission').value = gameState.config.commissionPercent;
     document.getElementById('configCloseTime').value = gameState.config.countdownTime;
     document.getElementById('configAlias').value = gameState.config.alias;
+    const cmEl = document.getElementById('configClosedMessage');
+    if (cmEl) cmEl.value = gameState.config.closedMessage || '';
     
     if (gameState.config.schedule) {
         document.getElementById('scheduleEnabled').checked = gameState.config.schedule.enabled;
@@ -296,6 +298,7 @@ async function saveConfig() {
         commissionPercent: parseInt(document.getElementById('configCommission').value),
         countdownTime: parseInt(document.getElementById('configCloseTime').value),
         alias: document.getElementById('configAlias').value,
+        closedMessage: document.getElementById('configClosedMessage').value,
         schedule: {
             enabled: document.getElementById('scheduleEnabled').checked,
             openHour: parseInt(document.getElementById('scheduleOpen').value),

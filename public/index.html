@@ -132,12 +132,68 @@
     margin-top: 1px;
 }
 
+/* ── Modal más compacto ──────────────────────────────────────── */
+.modal-content {
+    padding: 22px 24px !important;
+    max-width: 420px !important;
+    max-height: 92vh !important;
+    overflow-y: auto !important;
+}
+.modal-content h2 {
+    font-size: 1.25em !important;
+    margin-bottom: 6px !important;
+}
+
 /* ── Fix alias-text para que no se desborde ─────────────────── */
 .alias-text {
-    font-size: clamp(1em, 4vw, 2em) !important;
+    font-size: clamp(0.85em, 3.5vw, 1.4em) !important;
     word-break: break-all;
     letter-spacing: 1px !important;
     line-height: 1.3;
+    text-align: center;
+    padding: 0 8px;
+}
+.alias-box {
+    padding: 16px !important;
+    margin: 12px 0 !important;
+}
+
+/* ── Cartel flotante CERRADO ─────────────────────────────────── */
+.closed-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+.closed-card {
+    background: rgba(20, 10, 40, 0.85);
+    border: 2px solid rgba(239,68,68,0.6);
+    border-radius: 24px;
+    padding: 40px 50px;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(239,68,68,0.3);
+    max-width: 380px;
+    width: 88%;
+}
+.closed-icon { font-size: 3.5em; margin-bottom: 12px; }
+.closed-title {
+    font-size: 2em;
+    font-weight: 900;
+    color: #ef4444;
+    letter-spacing: 3px;
+    text-shadow: 0 0 20px rgba(239,68,68,0.6);
+    margin-bottom: 14px;
+}
+.closed-msg {
+    font-size: 1.05em;
+    opacity: 0.85;
+    line-height: 1.5;
+    color: #e2e8f0;
 }
 </style>
 </head>
@@ -315,7 +371,7 @@
 <div id="paymentModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closePaymentModal()">&times;</span>
-        <h2>💸 Reservar Caja</h2>
+        <h2 style="font-size:1.3em;margin-bottom:8px;">💸 Reservar Caja</h2>
         <p>Caja seleccionada: <strong id="selectedBoxNumber">-</strong></p>
         <div class="alias-box">
             <p>Enviá $<span id="modalEntryPrice">500</span> a este alias:</p>
@@ -368,6 +424,17 @@
         <div class="ug-list" id="ultimosGanadoresList">
             <div class="ug-empty">Aún no hay ganadores...<br>¡sé el primero!</div>
         </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     CARTEL FLOTANTE CERRADO
+     ══════════════════════════════════ -->
+<div id="closedOverlay" class="closed-overlay hidden">
+    <div class="closed-card">
+        <div class="closed-icon">🔒</div>
+        <div class="closed-title">JUEGO CERRADO</div>
+        <div class="closed-msg" id="closedMsg">Volvé pronto, el juego está pausado.</div>
     </div>
 </div>
 
