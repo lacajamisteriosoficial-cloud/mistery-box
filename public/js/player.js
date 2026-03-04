@@ -297,6 +297,8 @@ async function fetchGameState() {
 
                 // Notificar solo la primera vez que se aprueba
                 if (!wasApproved && up.approved) {
+                    playSound('approved');
+                    hideWaitingApprovalBanner();
                     showNotification('¡Pago aprobado! Tocá la caja para confirmarla ✓','success');
                 }
 
@@ -501,7 +503,10 @@ async function submitTransfer() {
         if (r.ok) {
             const d = await r.json(); gameState.currentPlayer = d.player;
             saveSession();
-            closePaymentModal(); showNotification('Solicitud enviada. Esperando aprobación...','info'); renderBoxes();
+            closePaymentModal();
+            showNotification('Solicitud enviada. Esperando aprobación...','info');
+            renderBoxes();
+            showWaitingApprovalBanner();
         } else { const e=await r.json(); showNotification(e.error||'Error','error'); }
     } catch { showNotification('Error de conexión','error'); }
 }
@@ -562,6 +567,15 @@ function playAgain() {
 }
 
 function showResult(winner, winningBox, prize, jackpotAfter) {
+    // Primero mostrar animación de apertura, luego el resultado
+    if (winningBox) {
+        showBoxOpeningAnimation(winningBox, () => _doShowResult(winner, winningBox, prize, jackpotAfter));
+    } else {
+        _doShowResult(winner, winningBox, prize, jackpotAfter);
+    }
+}
+
+function _doShowResult(winner, winningBox, prize, jackpotAfter) {
     const screen=document.getElementById('resultScreen');
     const title=document.getElementById('resultTitle');
     const content=document.getElementById('resultContent');
@@ -576,10 +590,12 @@ function showResult(winner, winningBox, prize, jackpotAfter) {
             content.innerHTML=`<div class="prize-amount">$${prize?prize.toLocaleString():0}</div><p style="opacity:0.9;margin-bottom:15px;">¡El pozo es tuyo! El operador te va a contactar.</p>${wBox}`;
             btn.textContent='🔥 ¡Estás en racha! — Siguiente ronda'; btn.className='btn btn-win-again';
             createConfetti();
+            playSound('win');
         } else {
             title.innerHTML=`<div class="result-title-lose">😬 Esta vez no fue...</div>`;
             content.innerHTML=`<div class="result-winner-other">🏆 Ganó: <strong>${winner.name}</strong></div>${wBox}<p style="opacity:0.8;margin:15px 0;">Tu próxima oportunidad comienza ahora.</p>`;
             btn.textContent=newJ>0?`🎯 Siguiente — Pozo: $${newJ.toLocaleString()}`:'🎯 Siguiente ronda'; btn.className='btn btn-try-again';
+            playSound('lose');
         }
     } else {
         title.innerHTML=`<div class="result-title-lose">😮 ¡Nadie ganó!</div>`;
@@ -876,6 +892,8 @@ function showDramaticCountdown(seconds) {
         numEl.style.animation = 'none';
         void numEl.offsetWidth; // reflow
         numEl.style.animation = seconds <= 1 ? 'dcShake 0.4s ease' : 'dcBounce 0.35s ease';
+        // Sonido
+        playSound(seconds <= 1 ? 'final_tick' : 'tick');
         // Color según urgencia
         if (seconds <= 1) {
             numEl.style.color = '#ef4444';
@@ -953,4 +971,185 @@ function showPlayersNeededBanner(needed, current, min) {
 
 function hidePlayersNeededBanner() {
     if (playersNeededBanner) playersNeededBanner.style.display = 'none';
+}
+
+// ══════════════════════════════════════════════════════════════
+// SONIDOS (Web Audio API — sin archivos externos)
+// ══════════════════════════════════════════════════════════════
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let _audioCtx = null;
+function getAudioCtx() {
+    if (!_audioCtx) _audioCtx = new AudioCtx();
+    return _audioCtx;
+}
+
+function playSound(type) {
+    try {
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        const g = ctx.createGain();
+        g.connect(ctx.destination);
+
+        if (type === 'tick') {
+            // Tick de cuenta regresiva
+            const o = ctx.createOscillator();
+            o.connect(g);
+            o.frequency.value = 880;
+            g.gain.setValueAtTime(0.18, now);
+            g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+            o.start(now); o.stop(now + 0.08);
+
+        } else if (type === 'final_tick') {
+            // Último segundo — más dramático
+            const o = ctx.createOscillator();
+            o.connect(g);
+            o.frequency.setValueAtTime(440, now);
+            o.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+            g.gain.setValueAtTime(0.35, now);
+            g.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            o.start(now); o.stop(now + 0.3);
+
+        } else if (type === 'win') {
+            // Fanfarria ganador
+            const notes = [523, 659, 784, 1047];
+            notes.forEach((freq, i) => {
+                const o = ctx.createOscillator();
+                const gn = ctx.createGain();
+                o.connect(gn); gn.connect(ctx.destination);
+                o.frequency.value = freq;
+                o.type = 'triangle';
+                const t = now + i * 0.12;
+                gn.gain.setValueAtTime(0, t);
+                gn.gain.linearRampToValueAtTime(0.28, t + 0.04);
+                gn.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+                o.start(t); o.stop(t + 0.35);
+            });
+
+        } else if (type === 'lose') {
+            // Sonido derrota
+            const o = ctx.createOscillator();
+            o.connect(g);
+            o.type = 'sawtooth';
+            o.frequency.setValueAtTime(300, now);
+            o.frequency.exponentialRampToValueAtTime(100, now + 0.4);
+            g.gain.setValueAtTime(0.18, now);
+            g.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            o.start(now); o.stop(now + 0.4);
+
+        } else if (type === 'approved') {
+            // Pago aprobado — ding!
+            const freqs = [784, 988];
+            freqs.forEach((freq, i) => {
+                const o = ctx.createOscillator();
+                const gn = ctx.createGain();
+                o.connect(gn); gn.connect(ctx.destination);
+                o.frequency.value = freq;
+                o.type = 'sine';
+                const t = now + i * 0.15;
+                gn.gain.setValueAtTime(0.22, t);
+                gn.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+                o.start(t); o.stop(t + 0.3);
+            });
+        }
+    } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════════════
+// BANNER ESPERANDO APROBACIÓN DE PAGO
+// ══════════════════════════════════════════════════════════════
+let waitingBanner = null;
+
+function showWaitingApprovalBanner() {
+    if (waitingBanner) return;
+    waitingBanner = document.createElement('div');
+    waitingBanner.id = 'waitingApprovalBanner';
+    waitingBanner.style.cssText = `
+        position: fixed;
+        bottom: 90px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, rgba(99,102,241,0.97), rgba(124,58,237,0.97));
+        backdrop-filter: blur(12px);
+        border: 1.5px solid rgba(167,139,250,0.5);
+        color: white;
+        padding: 14px 24px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.92em;
+        z-index: 800;
+        box-shadow: 0 6px 28px rgba(99,102,241,0.5);
+        white-space: nowrap;
+        animation: fadeInUp 0.4s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        pointer-events: none;
+        text-align: center;
+    `;
+    waitingBanner.innerHTML = `
+        <span style="font-size:1.3em;animation:spin 2s linear infinite;display:inline-block">⏳</span>
+        <div>
+            <div style="font-size:0.95em;font-weight:800;">¡Pago enviado correctamente!</div>
+            <div style="font-size:0.78em;opacity:0.8;margin-top:2px;">Esperando aprobación del operador...</div>
+        </div>
+    `;
+    if (!document.getElementById('waitingBannerStyle')) {
+        const s = document.createElement('style');
+        s.id = 'waitingBannerStyle';
+        s.textContent = `
+            @keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+            @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        `;
+        document.head.appendChild(s);
+    }
+    document.body.appendChild(waitingBanner);
+}
+
+function hideWaitingApprovalBanner() {
+    if (waitingBanner) {
+        waitingBanner.remove();
+        waitingBanner = null;
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ANIMACIÓN APERTURA DE CAJA
+// ══════════════════════════════════════════════════════════════
+function showBoxOpeningAnimation(winningBox, callback) {
+    const overlay = document.createElement('div');
+    overlay.className = 'box-opening-overlay';
+    overlay.innerHTML = `
+        <div class="box-number-reveal">🎯 CAJA #${winningBox}</div>
+        <div class="box-opening-stage">
+            <div class="box-body">🎁</div>
+            <div class="box-lid"></div>
+        </div>
+        <div class="box-winner-label" style="opacity:0;animation:fadeInDown 0.5s ease 0.9s forwards;">
+            ✨ Abriendo...
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // Sonido de apertura
+    try {
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        // Suspenso
+        [200, 250, 300, 380, 480].forEach((freq, i) => {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.connect(g); g.connect(ctx.destination);
+            o.frequency.value = freq;
+            o.type = 'sine';
+            const t = now + i * 0.1;
+            g.gain.setValueAtTime(0.08, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+            o.start(t); o.stop(t + 0.15);
+        });
+    } catch(e) {}
+
+    setTimeout(() => {
+        overlay.remove();
+        if (callback) callback();
+    }, 1600);
 }
