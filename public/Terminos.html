@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Términos y Condiciones — Caja Misteriosa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d0f1a;
+            --bg2: #12152a;
+            --border: rgba(255,255,255,0.08);
+            --text: #e2e8f0;
+            --text-dim: rgba(226,232,240,0.5);
+            --accent: #f59e0b;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.7;
+        }
+        body::before {
+            content:'';
+            position:fixed;
+            top:-20%; left:-10%;
+            width:50vw; height:50vw;
+            background: radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 60%);
+            pointer-events:none; z-index:0;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(124,58,237,0.1));
+            border-bottom: 1px solid var(--border);
+            padding: 40px 24px 32px;
+            text-align: center;
+        }
+        .page-header .emoji { font-size: 2.5em; margin-bottom: 12px; display: block; }
+        .page-header h1 {
+            font-size: 2em;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        .page-header .subtitle {
+            color: var(--text-dim);
+            font-size: 0.9em;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .back-link:hover { opacity: 1; }
+
+        .container {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .last-update {
+            background: rgba(245,158,11,0.08);
+            border: 1px solid rgba(245,158,11,0.2);
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 0.8em;
+            color: var(--accent);
+            margin-bottom: 36px;
+            display: inline-block;
+        }
+
+        .section {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 26px 28px;
+            margin-bottom: 16px;
+        }
+        .section:hover { border-color: rgba(255,255,255,0.13); }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .section-icon {
+            font-size: 1.4em;
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .section-title {
+            font-size: 1em;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+        }
+        .section-num {
+            font-size: 0.68em;
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .section p {
+            font-size: 0.9em;
+            color: rgba(226,232,240,0.75);
+            margin-bottom: 10px;
+        }
+        .section p:last-child { margin-bottom: 0; }
+
+        .highlight-box {
+            background: rgba(245,158,11,0.08);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 10px 10px 0;
+            padding: 12px 16px;
+            margin: 12px 0;
+            font-size: 0.88em;
+            color: rgba(226,232,240,0.85);
+        }
+        .highlight-box strong { color: var(--accent); }
+
+        .danger-box {
+            background: rgba(239,68,68,0.08);
+            border-left: 3px solid #ef4444;
+            border-radius: 0 10px 10px 0;
+            padding: 12px 16px;
+            margin: 12px 0;
+            font-size: 0.88em;
+            color: rgba(226,232,240,0.85);
+        }
+
+        .contact-box {
+            background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(124,58,237,0.08));
+            border: 1px solid rgba(99,102,241,0.25);
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin-top: 32px;
+            text-align: center;
+        }
+        .contact-box h3 {
+            font-size: 1em;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .contact-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.85em;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .contact-link-email {
+            background: rgba(245,158,11,0.15);
+            border: 1px solid rgba(245,158,11,0.35);
+            color: #fbbf24;
+        }
+        .contact-link-tg {
+            background: rgba(37,211,102,0.12);
+            border: 1px solid rgba(37,211,102,0.3);
+            color: #34d399;
+        }
+        .contact-link:hover { transform: translateY(-2px); opacity: 0.85; }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.78em;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+        .footer-note strong { color: rgba(226,232,240,0.65); }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <span class="emoji">📋</span>
+    <h1>Términos y Condiciones</h1>
+    <p class="subtitle">Caja Misteriosa — Leé antes de participar</p>
+</div>
+
+<div class="container">
+    <a href="/" class="back-link">← Volver al juego</a>
+
+    <div class="last-update">📅 Última actualización: Marzo 2026</div>
+
+    <!-- 1 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">🎮</div>
+            <div>
+                <div class="section-num">Artículo 1</div>
+                <div class="section-title">Naturaleza del juego</div>
+            </div>
+        </div>
+        <p>Caja Misteriosa es una <strong>actividad recreativa privada de entretenimiento entre particulares</strong>, organizada de forma voluntaria y sin fines comerciales de explotación de juegos de azar.</p>
+        <p>Esta actividad <strong>no constituye un juego de azar regulado</strong>, no opera bajo ninguna licencia de apuestas y no está afiliada a ninguna plataforma de gambling o casino. No se trata de una apuesta ni de una actividad de lotería en los términos de la legislación vigente.</p>
+        <div class="highlight-box">
+            <strong>Importante:</strong> La participación es completamente voluntaria. Al ingresar, el jugador declara comprender la naturaleza recreativa y privada de la actividad.
+        </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">🔞</div>
+            <div>
+                <div class="section-num">Artículo 2</div>
+                <div class="section-title">Requisitos de participación</div>
+            </div>
+        </div>
+        <p>Podrán participar únicamente personas <strong>mayores de 18 años</strong> con capacidad legal para realizar actos jurídicos.</p>
+        <p>Al participar, el jugador declara bajo su responsabilidad que cumple con este requisito. El operador no será responsable por la participación de menores de edad que hayan proporcionado datos falsos.</p>
+        <div class="danger-box">
+            Queda estrictamente prohibida la participación de menores de 18 años.
+        </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">💸</div>
+            <div>
+                <div class="section-num">Artículo 3</div>
+                <div class="section-title">Pagos y confirmación</div>
+            </div>
+        </div>
+        <p>Los pagos se realizan mediante transferencia a través de MercadoPago al alias indicado en cada ronda. El operador verificará manualmente cada pago antes de confirmar la participación.</p>
+        <p><strong>Una transferencia realizada no garantiza automáticamente la reserva de una caja.</strong> La reserva queda confirmada únicamente cuando el operador aprueba el pago desde el panel de control.</p>
+        <p>El jugador deberá proporcionar el número de operación de la transferencia para facilitar la verificación. En caso de no poder verificarse la operación, el pago no será acreditado.</p>
+    </div>
+
+    <!-- 4 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">🏆</div>
+            <div>
+                <div class="section-num">Artículo 4</div>
+                <div class="section-title">Premio y transferencia al ganador</div>
+            </div>
+        </div>
+        <p>El ganador es determinado de forma aleatoria mediante el sistema al momento del cierre de la ronda. El operador no interviene en la selección del resultado.</p>
+        <p>El premio se transfiere <strong>exclusivamente al alias de MercadoPago declarado por el jugador</strong> al momento de su registro en la ronda.</p>
+        <div class="danger-box">
+            <strong>El operador NO se hace responsable por alias de MercadoPago incorrectos, inexistentes o mal escritos ingresados por el jugador.</strong> Si el alias ingresado es erróneo y la transferencia no puede realizarse o se acredita en una cuenta incorrecta, el operador no está obligado a reembolsar ni a repetir el pago. Es responsabilidad exclusiva del jugador verificar su alias antes de enviarlo.
+        </div>
+        <p>El jugador acepta que una vez informado como ganador, el operador intentará realizar la transferencia al alias declarado. En caso de error en el alias, se otorgará un plazo de 24 horas para que el ganador se comunique por los canales oficiales indicados en estos términos.</p>
+    </div>
+
+    <!-- 5 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">💰</div>
+            <div>
+                <div class="section-num">Artículo 5</div>
+                <div class="section-title">Pozo acumulado</div>
+            </div>
+        </div>
+        <p>Si al finalizar una ronda la caja ganadora no fue seleccionada por ningún jugador, el monto de esa ronda (descontada la comisión del operador) se acumula para la siguiente ronda.</p>
+        <p>El pozo acumulado no caduca y se mantiene hasta que haya un ganador. El operador informará el monto acumulado vigente antes del inicio de cada ronda.</p>
+    </div>
+
+    <!-- 6 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">🚫</div>
+            <div>
+                <div class="section-num">Artículo 6</div>
+                <div class="section-title">Cancelaciones y reembolsos</div>
+            </div>
+        </div>
+        <p>Una vez que el operador confirma el pago y aprueba la participación, <strong>no se realizan devoluciones</strong> salvo en los casos previstos en el artículo siguiente.</p>
+        <p>El jugador que no logre confirmar su pago antes del inicio del sorteo perderá la posibilidad de participar en esa ronda, sin derecho a reembolso si la transferencia ya fue realizada y no puede verificarse.</p>
+    </div>
+
+    <!-- 7 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">⚠️</div>
+            <div>
+                <div class="section-num">Artículo 7</div>
+                <div class="section-title">Cancelación de ronda por el operador</div>
+            </div>
+        </div>
+        <p>El operador se reserva el derecho de cancelar una ronda ante circunstancias extraordinarias, irregularidades técnicas, o cualquier situación que comprometa la integridad del juego.</p>
+        <p>En caso de cancelación por causas imputables al operador, <strong>se reintegrarán los pagos confirmados</strong> a los jugadores afectados. El reintegro se realizará al mismo alias de MercadoPago desde el cual se realizó el pago original.</p>
+    </div>
+
+    <!-- 8 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">🔒</div>
+            <div>
+                <div class="section-num">Artículo 8</div>
+                <div class="section-title">Responsabilidad del jugador</div>
+            </div>
+        </div>
+        <p>El jugador es el único responsable del uso que haga de la plataforma. El operador no se hace responsable por:</p>
+        <p>— El uso indebido de la plataforma por parte de terceros con los datos del jugador.</p>
+        <p>— Pérdidas derivadas de decisiones personales de participación.</p>
+        <p>— Problemas técnicos en los dispositivos del jugador o en su conexión a internet.</p>
+        <p>— Cualquier consecuencia derivada de información falsa o incorrecta proporcionada por el jugador.</p>
+    </div>
+
+    <!-- 9 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">🛡️</div>
+            <div>
+                <div class="section-num">Artículo 9</div>
+                <div class="section-title">Limitación de responsabilidad del operador</div>
+            </div>
+        </div>
+        <p>El operador no garantiza la disponibilidad ininterrumpida de la plataforma. Pueden producirse interrupciones por mantenimiento, actualizaciones o causas técnicas ajenas al operador.</p>
+        <p>El operador no se responsabiliza por fallas en el servicio de MercadoPago ni en los sistemas de terceros utilizados para el procesamiento de pagos.</p>
+        <div class="highlight-box">
+            La plataforma se provee "tal como está". El operador realiza sus mejores esfuerzos para garantizar una experiencia justa y transparente, pero no puede garantizar la ausencia total de errores técnicos.
+        </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">📜</div>
+            <div>
+                <div class="section-num">Artículo 10</div>
+                <div class="section-title">Aceptación de términos</div>
+            </div>
+        </div>
+        <p>Al realizar una transferencia y completar el formulario de registro en una ronda, el jugador declara haber leído, comprendido y aceptado en su totalidad los presentes Términos y Condiciones.</p>
+        <p>El operador se reserva el derecho de modificar estos términos en cualquier momento. Las modificaciones serán publicadas en esta misma página y entrarán en vigencia desde su publicación.</p>
+        <p>La continuación de la participación luego de una modificación implica la aceptación de los nuevos términos.</p>
+    </div>
+
+    <!-- Contacto -->
+    <div class="contact-box">
+        <h3>📬 ¿Tenés alguna duda o inconveniente?</h3>
+        <p style="font-size:0.85em;color:rgba(226,232,240,0.6);margin-bottom:4px;">
+            Para consultas, reclamos o cualquier situación no contemplada, podés comunicarte por los siguientes canales oficiales:
+        </p>
+        <div class="contact-links">
+            <a href="mailto:la.caja.misterios.oficial@gmail.com" class="contact-link contact-link-email">
+                ✉️ la.caja.misterios.oficial@gmail.com
+            </a>
+            <a href="https://t.me/+dTJJPwscg25kNDNh" target="_blank" class="contact-link contact-link-tg">
+                ✈️ Canal de Telegram
+            </a>
+        </div>
+        <p style="font-size:0.75em;color:rgba(226,232,240,0.35);margin-top:14px;">
+            Tiempo de respuesta estimado: hasta 24 horas hábiles.
+        </p>
+    </div>
+
+    <div class="footer-note">
+        <strong>© 2026 Caja Misteriosa.</strong> Todos los derechos reservados.<br>
+        Actividad recreativa privada entre particulares — No constituye juego de azar ni apuesta regulada.<br>
+        Destinado exclusivamente a mayores de 18 años.
+    </div>
+</div>
+
+</body>
+</html>
