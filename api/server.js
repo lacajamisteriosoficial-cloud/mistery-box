@@ -9,23 +9,37 @@ app.use(express.json());
 
 // ── Persistencia de config en archivo JSON ────────────────────────────
 const CONFIG_FILE = path.join(__dirname, 'config.json');
+const STATE_FILE  = path.join(__dirname, 'state.json');
 
 function loadConfig() {
     try {
-        if (fs.existsSync(CONFIG_FILE)) {
-            return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
-        }
+        if (fs.existsSync(CONFIG_FILE)) return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
     } catch(e) { console.error('Error leyendo config:', e); }
     return null;
 }
-
 function saveConfig(config) {
+    try { fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2)); }
+    catch(e) { console.error('Error guardando config:', e); }
+}
+
+// Persiste jackpot y winnersHistory (lo más crítico entre reinicios)
+function loadState() {
     try {
-        fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
-    } catch(e) { console.error('Error guardando config:', e); }
+        if (fs.existsSync(STATE_FILE)) return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+    } catch(e) {}
+    return null;
+}
+function saveState() {
+    try {
+        fs.writeFileSync(STATE_FILE, JSON.stringify({
+            jackpot: gameState.jackpot,
+            winnersHistory: gameState.winnersHistory
+        }, null, 2));
+    } catch(e) { console.error('Error guardando estado:', e); }
 }
 
 const savedConfig = loadConfig();
+const savedState  = loadState();
 
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -70,14 +84,14 @@ let gameState = {
     players: [],
     boxes: {},
     extraBoxes: {},
-    jackpot: 0,
+    jackpot: savedState ? (savedState.jackpot || 0) : 0,
     roundFund: 0,
     countdownEnd: null,
     winner: null,
     winningBox: null,
     lastPrize: null,
     pendingTransfers: [],
-    winnersHistory: [],
+    winnersHistory: savedState ? (savedState.winnersHistory || []) : [],
     config: savedConfig ? { ...defaultConfig, ...savedConfig } : { ...defaultConfig }
 };
 
@@ -250,8 +264,8 @@ app.post('/api/reject-transfer', (req, res) => {
 
 app.post('/api/config', (req, res) => {
     gameState.config = { ...gameState.config, ...req.body };
-    // ← Guardar en archivo para que persista entre reinicios
     saveConfig(gameState.config);
+    saveState();
     res.json({config: gameState.config});
 });
 
@@ -345,6 +359,7 @@ function drawWinner() {
         gameState.winner = null;
     }
 
+    saveState(); // ← persistir jackpot y historial
     gameState.status = 'FINISHED';
     scheduleAutoReset();
 }
@@ -379,6 +394,14 @@ app.post('/api/chat/delete', (req, res) => {
     delete chatSessions[sessionId];
     broadcastChatUpdate();
     res.json({success: true});
+});
+
+
+// Cuántos jugadores faltan para el mínimo
+app.get('/api/players-needed', (req, res) => {
+    const approved = gameState.players.filter(p => p.approved && p.box).length;
+    const needed = Math.max(0, gameState.config.minPlayers - approved);
+    res.json({ needed, current: approved, min: gameState.config.minPlayers });
 });
 
 const PORT = process.env.PORT || 3000;

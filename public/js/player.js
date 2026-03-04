@@ -264,6 +264,8 @@ async function fetchGameState() {
         const oldBar = document.getElementById('scheduleClosed');
         if (oldBar) oldBar.classList.toggle('hidden', data.inSchedule !== false);
         if (data.countdownEnd && gameState.status === 'COUNTDOWN') updateTimer(data.countdownEnd);
+        else hideDramaticCountdown();
+        checkPlayersNeeded();
 
         updateDisplay();
         renderBoxes();
@@ -444,6 +446,8 @@ function updateDisplay() {
 
 function updateTimer(countdownEnd) {
     const s = Math.ceil(Math.max(0, countdownEnd - Date.now()) / 1000);
+    // Mostrar overlay dramático
+    showDramaticCountdown(s);
     document.getElementById('timerDisplay').textContent = `00:0${s}`;
 }
 
@@ -801,4 +805,152 @@ async function sendChatMsg() {
 
 function escapeHtml(text) {
     return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// CUENTA REGRESIVA DRAMÁTICA
+// ══════════════════════════════════════════════════════════════
+let dramaticOverlay = null;
+let lastDramaticSec = -1;
+
+function showDramaticCountdown(seconds) {
+    if (!dramaticOverlay) {
+        dramaticOverlay = document.createElement('div');
+        dramaticOverlay.id = 'dramaticCountdown';
+        dramaticOverlay.style.cssText = `
+            position: fixed; inset: 0; z-index: 2500;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.82);
+            backdrop-filter: blur(6px);
+            pointer-events: none;
+        `;
+        dramaticOverlay.innerHTML = `
+            <div id="dcLabel" style="
+                font-size: 1.1em; font-weight: 800; letter-spacing: 4px;
+                color: #fbbf24; text-transform: uppercase; margin-bottom: 18px;
+                text-shadow: 0 0 20px rgba(251,191,36,0.7);
+                animation: dcPulseLabel 1s infinite;
+            ">🎲 ¡Sorteando en...</div>
+            <div id="dcNumber" style="
+                font-size: 9em; font-weight: 900;
+                color: white; line-height: 1;
+                text-shadow: 0 0 60px rgba(251,191,36,0.9), 0 0 120px rgba(251,191,36,0.4);
+                font-family: 'Courier New', monospace;
+                transition: transform 0.15s ease;
+            ">3</div>
+            <div id="dcBoxes" style="
+                font-size: 1.3em; margin-top: 22px; letter-spacing: 2px;
+                color: rgba(255,255,255,0.6);
+            ">🎁 Las cajas se están cerrando...</div>
+        `;
+        // Agregar keyframe si no existe
+        if (!document.getElementById('dcStyle')) {
+            const style = document.createElement('style');
+            style.id = 'dcStyle';
+            style.textContent = `
+                @keyframes dcPulseLabel { 0%,100%{opacity:1} 50%{opacity:0.5} }
+                @keyframes dcBounce {
+                    0%{transform:scale(1.4);opacity:0}
+                    60%{transform:scale(0.9)}
+                    100%{transform:scale(1);opacity:1}
+                }
+                @keyframes dcShake {
+                    0%,100%{transform:translateX(0)}
+                    20%{transform:translateX(-8px)}
+                    40%{transform:translateX(8px)}
+                    60%{transform:translateX(-4px)}
+                    80%{transform:translateX(4px)}
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        document.body.appendChild(dramaticOverlay);
+    }
+
+    const numEl = document.getElementById('dcNumber');
+    if (seconds !== lastDramaticSec && numEl) {
+        lastDramaticSec = seconds;
+        numEl.textContent = seconds > 0 ? seconds : '🎲';
+        numEl.style.animation = 'none';
+        void numEl.offsetWidth; // reflow
+        numEl.style.animation = seconds <= 1 ? 'dcShake 0.4s ease' : 'dcBounce 0.35s ease';
+        // Color según urgencia
+        if (seconds <= 1) {
+            numEl.style.color = '#ef4444';
+            numEl.style.textShadow = '0 0 60px rgba(239,68,68,0.9), 0 0 120px rgba(239,68,68,0.4)';
+        } else if (seconds <= 2) {
+            numEl.style.color = '#f59e0b';
+            numEl.style.textShadow = '0 0 60px rgba(245,158,11,0.9), 0 0 120px rgba(245,158,11,0.4)';
+        } else {
+            numEl.style.color = 'white';
+            numEl.style.textShadow = '0 0 60px rgba(251,191,36,0.9), 0 0 120px rgba(251,191,36,0.4)';
+        }
+        // Vibrar en último segundo
+        if (seconds <= 1) {
+            try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e) {}
+        }
+    }
+    dramaticOverlay.style.display = 'flex';
+}
+
+function hideDramaticCountdown() {
+    if (dramaticOverlay) {
+        dramaticOverlay.style.display = 'none';
+        lastDramaticSec = -1;
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// JUGADORES NECESARIOS
+// ══════════════════════════════════════════════════════════════
+let playersNeededBanner = null;
+
+async function checkPlayersNeeded() {
+    if (gameState.status !== 'OPEN') {
+        hidePlayersNeededBanner();
+        return;
+    }
+    try {
+        const r = await fetch('/api/players-needed');
+        const data = await r.json();
+        if (data.needed > 0) {
+            showPlayersNeededBanner(data.needed, data.current, data.min);
+        } else {
+            hidePlayersNeededBanner();
+        }
+    } catch(e) {}
+}
+
+function showPlayersNeededBanner(needed, current, min) {
+    if (!playersNeededBanner) {
+        playersNeededBanner = document.createElement('div');
+        playersNeededBanner.id = 'playersNeededBanner';
+        playersNeededBanner.style.cssText = `
+            position: fixed; bottom: 90px; left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(99,102,241,0.95), rgba(124,58,237,0.95));
+            backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(167,139,250,0.5);
+            color: white; padding: 10px 22px;
+            border-radius: 30px; font-weight: 700;
+            font-size: 0.88em; z-index: 799;
+            box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+            white-space: nowrap;
+            animation: fadeInDown 0.4s ease;
+            pointer-events: none;
+        `;
+        document.body.appendChild(playersNeededBanner);
+    }
+    const emoji = needed === 1 ? '🔥' : '👥';
+    const txt = needed === 1
+        ? `${emoji} ¡Falta <strong>1 jugador</strong> para arrancar!`
+        : `${emoji} Faltan <strong>${needed} jugadores</strong> para arrancar (${current}/${min})`;
+    playersNeededBanner.innerHTML = txt;
+    playersNeededBanner.style.display = 'block';
+}
+
+function hidePlayersNeededBanner() {
+    if (playersNeededBanner) playersNeededBanner.style.display = 'none';
 }

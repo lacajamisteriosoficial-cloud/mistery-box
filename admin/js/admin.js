@@ -134,6 +134,7 @@ async function fetchGameState() {
         if (data.winnersHistory) {
             renderWinnersHistory(data.winnersHistory);
         }
+        checkAdminPlayersNeeded(data);
 
     } catch (error) {
         console.error('Error:', error);
@@ -690,4 +691,40 @@ async function closeChatConv() {
 function escapeAdminHtml(text) {
     if (!text) return '';
     return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// BANNER JUGADORES NECESARIOS — ADMIN
+// ══════════════════════════════════════════════════════════════
+function checkAdminPlayersNeeded(data) {
+    const approved = (data.players || []).filter(p => p.approved && p.box).length;
+    const min = data.config ? data.config.minPlayers : 2;
+    const needed = Math.max(0, min - approved);
+    let banner = document.getElementById('adminPlayersNeededBanner');
+
+    if (data.status === 'OPEN' && needed > 0) {
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'adminPlayersNeededBanner';
+            banner.style.cssText = `
+                background: linear-gradient(135deg, rgba(99,102,241,0.9), rgba(124,58,237,0.9));
+                border: 1.5px solid rgba(167,139,250,0.5);
+                border-radius: 12px; padding: 12px 20px;
+                margin-bottom: 15px; text-align: center;
+                font-weight: 700; font-size: 0.95em;
+                animation: fadeInDown 0.4s ease;
+            `;
+            // Insertar arriba del status-bar
+            const statusBar = document.querySelector('.status-bar');
+            if (statusBar) statusBar.parentNode.insertBefore(banner, statusBar);
+        }
+        const emoji = needed === 1 ? '🔥' : '👥';
+        banner.innerHTML = needed === 1
+            ? `${emoji} ¡Falta <strong>1 jugador confirmado</strong> para que arranque el sorteo!`
+            : `${emoji} Faltan <strong>${needed} jugadores</strong> confirmados para arrancar (${approved}/${min})`;
+        banner.style.display = 'block';
+    } else if (banner) {
+        banner.style.display = 'none';
+    }
 }
