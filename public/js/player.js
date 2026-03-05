@@ -363,6 +363,24 @@ function renderBoxes() {
         }
     }
 
+    // Centrar última fila si quedan cajas impares
+    // Detectar columnas según ancho
+    const cols = window.innerWidth <= 400 ? 3 : 4;
+    const remainder = total % cols;
+    if (remainder !== 0) {
+        // Agregar spacers invisibles para centrar la última fila
+        grid.querySelectorAll('.box-spacer').forEach(s => s.remove());
+        const spacersNeeded = cols - remainder;
+        for (let s = 0; s < spacersNeeded; s++) {
+            const spacer = document.createElement('div');
+            spacer.className = 'box-spacer';
+            spacer.style.cssText = 'visibility:hidden;pointer-events:none;';
+            grid.appendChild(spacer);
+        }
+    } else {
+        grid.querySelectorAll('.box-spacer').forEach(s => s.remove());
+    }
+
     // Actualizar estado de cada caja
     for (let i = 1; i <= total; i++) {
         const wrap = document.querySelector(`.box-card[data-number="${i}"]`);

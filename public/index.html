@@ -1013,14 +1013,101 @@ animP();
 </script>
 
 <!-- TÉRMINOS Y CONDICIONES -->
-<div style="background:rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.1);margin-top:40px;padding:24px 20px;text-align:center;font-size:0.78em;color:rgba(255,255,255,0.45);line-height:1.7;">
-    <div style="max-width:700px;margin:0 auto;">
-        <p style="margin-bottom:10px;">Al participar confirmás haber leído y aceptado nuestros términos y condiciones.</p>
-        <a href="/Terminos.html" style="display:inline-flex;align-items:center;gap:7px;color:rgba(255,255,255,0.6);text-decoration:none;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);padding:8px 20px;border-radius:50px;font-weight:600;font-size:1em;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">
-            📋 Leer Términos y Condiciones
+<div class="footer-terms">
+    <div class="footer-terms-inner">
+
+        <!-- Aviso importante -->
+        <div class="footer-warning">
+            <span class="footer-warning-icon">⚠️</span>
+            <div class="footer-warning-text">
+                <strong>IMPORTANTE — Leé antes de participar</strong>
+                Al transferir dinero y seleccionar una caja estás aceptando los términos y condiciones del juego. El operador no se hace responsable por transferencias enviadas fuera del horario habilitado o a un alias incorrecto.
+            </div>
+        </div>
+
+        <!-- Botón TyC destacado -->
+        <a href="/Terminos.html" class="footer-tyc-btn">
+            📋 Leer Términos y Condiciones completos
         </a>
-        <p style="margin-top:14px;opacity:0.4;font-size:0.9em;">© 2026 Caja Misteriosa — Actividad recreativa privada — Solo mayores de 18 años.</p>
+
+        <div class="footer-meta">
+            🔞 Solo mayores de 18 años &nbsp;·&nbsp; Actividad recreativa privada &nbsp;·&nbsp; © 2026 Caja Misteriosa
+        </div>
     </div>
 </div>
+
+<style>
+.footer-terms {
+    margin-top: 0;
+    padding: 0 0 80px;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.5) 100%);
+}
+.footer-terms-inner {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+.footer-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.35);
+    border-radius: 14px;
+    padding: 14px 16px;
+    width: 100%;
+}
+.footer-warning-icon { font-size: 1.4em; flex-shrink: 0; margin-top: 1px; }
+.footer-warning-text {
+    font-size: 0.78em;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.6;
+}
+.footer-warning-text strong {
+    display: block;
+    color: rgba(239,120,80,0.95);
+    font-size: 1em;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+.footer-tyc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(245,158,11,0.08) 100%);
+    border: 1.5px solid rgba(251,191,36,0.5);
+    color: #fbbf24;
+    text-decoration: none;
+    padding: 12px 28px;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 0.88em;
+    letter-spacing: 0.5px;
+    transition: all 0.25s ease;
+    box-shadow: 0 0 20px rgba(251,191,36,0.15);
+}
+.footer-tyc-btn:hover {
+    background: linear-gradient(135deg, rgba(251,191,36,0.25) 0%, rgba(245,158,11,0.15) 100%);
+    box-shadow: 0 0 30px rgba(251,191,36,0.35);
+    transform: translateY(-2px);
+    border-color: rgba(251,191,36,0.8);
+}
+.footer-meta {
+    font-size: 0.7em;
+    color: rgba(255,255,255,0.25);
+    text-align: center;
+    line-height: 1.6;
+}
+@media (max-width: 768px) {
+    .footer-terms { padding-bottom: 90px; }
+    .footer-tyc-btn { font-size: 0.82em; padding: 11px 22px; }
+    .footer-warning { padding: 12px 13px; }
+    .footer-warning-text { font-size: 0.75em; }
+}
+</style>
 </body>
 </html>
