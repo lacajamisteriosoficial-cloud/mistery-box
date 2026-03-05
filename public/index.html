@@ -543,23 +543,29 @@
    ══════════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-    /* Widget Últimos Ganadores → esquina superior derecha */
+    /* Widget Últimos Ganadores → abajo derecha, encima del chat */
     .ug-widget {
-        top: 14px; right: 10px;
-        bottom: auto; left: auto;
+        bottom: 84px; right: 10px;
+        top: auto; left: auto;
         width: 175px; font-size: 0.88em;
     }
+    /* Minimizado por defecto en mobile para no tapar */
+    .ug-widget { overflow: hidden; }
     .ug-widget-header { padding: 8px 11px; }
     .ug-widget-title  { font-size: 0.7em; }
-    .ug-widget-body   { max-height: 190px; padding: 8px 10px 10px; }
+    .ug-widget-body   { max-height: 200px; padding: 8px 10px 10px; }
     .ug-card          { padding: 6px 9px; }
     .ug-name          { font-size: 0.78em; }
     .ug-prize         { font-size: 0.85em; }
 
+    /* Header sin padding extra — el widget ya no está arriba */
+    .site-header { padding-right: 20px; }
+    .live-corner { right: 16px; top: 14px; }
+
     /* Telegram oculto en mobile */
     .tg-float { display: none !important; }
 
-    /* Chat → ícono redondo estilo WhatsApp */
+    /* Chat → ícono redondo estilo WhatsApp, abajo a la IZQUIERDA */
     .chat-fab { bottom: 18px; left: 14px; }
     .chat-fab-btn {
         width: 54px; height: 54px;
@@ -575,34 +581,28 @@
         height: 58vh; max-height: 400px;
     }
 
-    /* Banner "Faltan jugadores" → arriba centrado */
+    /* Banner "Faltan jugadores" → centro arriba del todo */
     #playersNeededBanner {
-        bottom: auto !important; top: 72px !important;
+        bottom: auto !important; top: 8px !important;
         left: 50% !important; right: auto !important;
         transform: translateX(-50%) !important;
-        font-size: 0.78em !important; padding: 7px 16px !important;
+        font-size: 0.75em !important; padding: 6px 14px !important;
         white-space: nowrap; max-width: 88vw;
         border-radius: 20px !important; z-index: 799;
     }
 
-    /* Banner "Esperando aprobación" → al lado del chat */
+    /* Banner "Esperando aprobación" → encima del chat */
     #waitingApprovalBanner {
         bottom: 84px !important; left: 78px !important;
         right: 10px !important; transform: none !important;
         font-size: 0.78em !important; padding: 9px 14px !important;
         white-space: normal !important; border-radius: 14px !important; z-index: 800;
     }
-
-    /* Header con margen para no chocar con el widget */
-    .site-header { padding-right: 195px; }
-    .live-corner { right: 195px; }
 }
 
 @media (max-width: 390px) {
-    .ug-widget   { width: 155px; right: 7px; }
-    .site-header { padding-right: 170px; }
-    .live-corner { right: 170px; }
-    #playersNeededBanner   { font-size: 0.72em !important; }
+    .ug-widget { width: 155px; right: 7px; }
+    #playersNeededBanner   { font-size: 0.7em !important; }
     #waitingApprovalBanner { left: 72px !important; }
 }
 </style>
@@ -825,7 +825,7 @@
 <!-- ══════════════════════════════════
      WIDGET FLOTANTE — ÚLTIMOS GANADORES
      ══════════════════════════════════ -->
-<div class="ug-widget" id="ugWidget">
+<div class="ug-widget minimized" id="ugWidget">
     <div class="ug-widget-header" onclick="toggleUGWidget()">
         <span class="ug-widget-title">🏆 Últimos Ganadores</span>
         <span class="ug-widget-toggle" id="ugToggleIcon">▼</span>
