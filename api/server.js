@@ -273,8 +273,29 @@ app.post('/api/reject-transfer', (req, res) => {
 });
 
 app.post('/api/config', (req, res) => {
-    gameState.config = { ...gameState.config, ...req.body };
+    // Merge cuidadoso: schedule es objeto anidado, hay que mergearlo correctamente
+    const incoming = req.body;
+    if (incoming.schedule && typeof incoming.schedule === 'object') {
+        gameState.config.schedule = { ...gameState.config.schedule, ...incoming.schedule };
+        delete incoming.schedule;
+    }
+    gameState.config = { ...gameState.config, ...incoming };
     saveConfig(gameState.config);
+
+    // Aplicar horario inmediatamente
+    const within = isWithinSchedule();
+    if (!within && gameState.status === 'OPEN') {
+        // Fuera de horario → cerrar ahora
+        console.log('Config: cerrando juego por horario');
+        if (timers.countdown) clearInterval(timers.countdown);
+        if (timers.autoReset) clearTimeout(timers.autoReset);
+        gameState.status = 'CLOSED';
+    } else if (within && gameState.status === 'CLOSED' && gameState.config.schedule.enabled) {
+        // Dentro de horario y estaba cerrado → abrir
+        console.log('Config: abriendo juego por horario');
+        resetRound(false);
+    }
+
     saveState();
     res.json({config: gameState.config});
 });

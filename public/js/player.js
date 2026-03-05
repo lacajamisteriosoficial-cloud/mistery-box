@@ -242,6 +242,7 @@ async function fetchGameState() {
         gameState.extraBoxes = data.extraBoxes;
         gameState.jackpot    = data.jackpot;
         gameState.config     = { ...gameState.config, ...data.config };
+        gameState.inSchedule = data.inSchedule !== false; // guardar estado de horario
 
         if (data.jackpot > lastJackpot && lastJackpot > 0) spawnCoinRain();
         lastJackpot = data.jackpot;
@@ -461,6 +462,8 @@ function updateStatus(status) {
 }
 
 function selectBox(n) {
+    // Doble protección: bloquear si fuera de horario o juego cerrado
+    if (!gameState.inSchedule) { showNotification('El juego está cerrado por ahora. ¡Volvé pronto!','error'); return; }
     if (gameState.status === 'FINISHED') { showNotification('La ronda terminó. Esperá la próxima...','warning'); return; }
     if (gameState.status !== 'OPEN')     { showNotification('La sala está cerrada','error'); return; }
     if (gameState.boxes[n]||gameState.extraBoxes[n]) { showNotification('Esa caja ya fue elegida','error'); return; }
@@ -494,6 +497,11 @@ function closePaymentModal() { document.getElementById('paymentModal').classList
 function copyAlias() { navigator.clipboard.writeText(gameState.config.alias).then(()=>showNotification('Alias copiado ✓','success')); }
 
 async function submitTransfer() {
+    if (!gameState.inSchedule) {
+        closePaymentModal();
+        showNotification('El juego está cerrado. No se puede procesar el pago.','error');
+        return;
+    }
     const name = document.getElementById('playerName').value.trim();
     const opId = document.getElementById('operationId').value.trim();
     if (!name)           { showNotification('Ingresá tu nombre','error'); return; }
