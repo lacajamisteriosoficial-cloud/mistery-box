@@ -51,7 +51,7 @@ const BOX_PALETTES = [
 
 // ── SVG isométrico de caja regalo ─────────────────────────────────────
 // Genera una caja 3D isométrica como imagen SVG inline
-function buildGiftBoxSVG(pal, state) {
+function buildGiftBoxSVG(pal, state, boxNum) {
     // Dimensiones de la caja isométrica
     // Cara frontal, cara lateral, tapa
     const W = 100, H = 120;
@@ -86,51 +86,48 @@ function buildGiftBoxSVG(pal, state) {
     // Cara lateral: paralelogramo derecho
     // Tapa: rombo superior
 
+    // uid evita que el browser reutilice gradientes de otras cajas
+    const uid = `b${boxNum}-${state}`;
     const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 110" width="100" height="110">
   <defs>
-    <filter id="shadow-${state}" x="-20%" y="-20%" width="140%" height="160%">
+    <filter id="shadow-${uid}" x="-20%" y="-20%" width="140%" height="160%">
       <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="rgba(0,0,0,0.55)"/>
     </filter>
-    <filter id="glow-${state}">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <!-- Gradientes para dar volumen 3D -->
-    <linearGradient id="bodyGrad-${state}" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="bodyGrad-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="${lighten(bodyC,20)}"/>
       <stop offset="100%" stop-color="${bodyC}"/>
     </linearGradient>
-    <linearGradient id="sideGrad-${state}" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="sideGrad-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="${sideC}"/>
       <stop offset="100%" stop-color="${darken(sideC,20)}"/>
     </linearGradient>
-    <linearGradient id="topGrad-${state}" x1="0%" y1="0%" x2="0%" y2="100%">
+    <linearGradient id="topGrad-${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" stop-color="${lighten(topC,30)}"/>
       <stop offset="100%" stop-color="${topC}"/>
     </linearGradient>
-    <linearGradient id="bowGrad-${state}" cx="30%" cy="30%" r="70%" fx="30%" fy="30%" gradientUnits="objectBoundingBox">
+    <linearGradient id="bowGrad-${uid}" cx="30%" cy="30%" r="70%" fx="30%" fy="30%" gradientUnits="objectBoundingBox">
       <stop offset="0%" stop-color="${lighten(bowC,30)}"/>
       <stop offset="100%" stop-color="${bowC}"/>
     </linearGradient>
   </defs>
-  <g opacity="${opacity}" filter="url(#shadow-${state})">
+  <g opacity="${opacity}" filter="url(#shadow-${uid})">
 
     <!-- CARA FRONTAL (izquierda) -->
-    <polygon points="15,52 50,70 50,100 15,82" fill="url(#bodyGrad-${state})"/>
+    <polygon points="15,52 50,70 50,100 15,82" fill="url(#bodyGrad-${uid})"/>
     <!-- Borde frontal -->
     <polygon points="15,52 50,70 50,100 15,82" fill="none" stroke="${lighten(bodyC,15)}" stroke-width="0.5" opacity="0.5"/>
     <!-- Ribete lazo frontal -->
     <polygon points="30,61 35,63.5 35,91 30,88.5" fill="${ribbonC}" opacity="0.85"/>
 
     <!-- CARA LATERAL (derecha) -->
-    <polygon points="50,70 85,52 85,82 50,100" fill="url(#sideGrad-${state})"/>
+    <polygon points="50,70 85,52 85,82 50,100" fill="url(#sideGrad-${uid})"/>
     <polygon points="50,70 85,52 85,82 50,100" fill="none" stroke="${darken(sideC,10)}" stroke-width="0.5" opacity="0.4"/>
     <!-- Ribete lazo lateral -->
     <polygon points="65,61 70,58.5 70,88.5 65,91" fill="${ribbonC}" opacity="0.75"/>
 
     <!-- TAPA -->
-    <polygon points="15,52 50,34 85,52 50,70" fill="url(#topGrad-${state})"/>
+    <polygon points="15,52 50,34 85,52 50,70" fill="url(#topGrad-${uid})"/>
     <polygon points="15,52 50,34 85,52 50,70" fill="none" stroke="${lighten(topC,20)}" stroke-width="0.5" opacity="0.5"/>
     <!-- Lazo horizontal en tapa -->
     <polygon points="15,52 50,34 85,52 50,70" 
@@ -144,10 +141,10 @@ function buildGiftBoxSVG(pal, state) {
 
     <!-- MOÑO -->
     <!-- Lazo izquierdo -->
-    <ellipse cx="43" cy="28" rx="8" ry="5.5" fill="url(#bowGrad-${state})"
+    <ellipse cx="43" cy="28" rx="8" ry="5.5" fill="url(#bowGrad-${uid})"
              transform="rotate(-30 43 28)" opacity="0.95"/>
     <!-- Lazo derecho -->
-    <ellipse cx="57" cy="28" rx="8" ry="5.5" fill="url(#bowGrad-${state})"
+    <ellipse cx="57" cy="28" rx="8" ry="5.5" fill="url(#bowGrad-${uid})"
              transform="rotate(30 57 28)" opacity="0.95"/>
     <!-- Nudo central -->
     <circle cx="50" cy="30" r="5" fill="${lighten(bowC,25)}"/>
@@ -242,7 +239,6 @@ async function fetchGameState() {
         gameState.extraBoxes = data.extraBoxes;
         gameState.jackpot    = data.jackpot;
         gameState.config     = { ...gameState.config, ...data.config };
-        gameState.inSchedule = data.inSchedule !== false; // guardar estado de horario
 
         if (data.jackpot > lastJackpot && lastJackpot > 0) spawnCoinRain();
         lastJackpot = data.jackpot;
@@ -410,7 +406,7 @@ function renderBoxes() {
         if (state === 'idle')     wrap.classList.add('state-idle');
 
         // SVG
-        art.innerHTML = buildGiftBoxSVG(pal, state);
+        art.innerHTML = buildGiftBoxSVG(pal, state, i);
 
         // Tag del jugador
         if (playerName) {
@@ -462,8 +458,6 @@ function updateStatus(status) {
 }
 
 function selectBox(n) {
-    // Doble protección: bloquear si fuera de horario o juego cerrado
-    if (!gameState.inSchedule) { showNotification('El juego está cerrado por ahora. ¡Volvé pronto!','error'); return; }
     if (gameState.status === 'FINISHED') { showNotification('La ronda terminó. Esperá la próxima...','warning'); return; }
     if (gameState.status !== 'OPEN')     { showNotification('La sala está cerrada','error'); return; }
     if (gameState.boxes[n]||gameState.extraBoxes[n]) { showNotification('Esa caja ya fue elegida','error'); return; }
@@ -497,11 +491,6 @@ function closePaymentModal() { document.getElementById('paymentModal').classList
 function copyAlias() { navigator.clipboard.writeText(gameState.config.alias).then(()=>showNotification('Alias copiado ✓','success')); }
 
 async function submitTransfer() {
-    if (!gameState.inSchedule) {
-        closePaymentModal();
-        showNotification('El juego está cerrado. No se puede procesar el pago.','error');
-        return;
-    }
     const name = document.getElementById('playerName').value.trim();
     const opId = document.getElementById('operationId').value.trim();
     if (!name)           { showNotification('Ingresá tu nombre','error'); return; }
@@ -630,7 +619,7 @@ function renderUltimosGanadores(history) {
         return;
     }
     const medals = ['🥇','🥈','🥉'];
-    container.innerHTML = winners.map((w, i) => `
+    const html = winners.map((w, i) => `
         <div class="ug-card">
             <div class="ug-medal">${medals[i] || '🏆'}</div>
             <div class="ug-info">
@@ -640,6 +629,10 @@ function renderUltimosGanadores(history) {
             </div>
         </div>
     `).join('');
+    container.innerHTML = html;
+    // Sincronizar lista inline (mobile)
+    const inlineList = document.getElementById('ultimosGanadoresListInline');
+    if (inlineList) inlineList.innerHTML = html;
 }
 
 function toggleUGWidget() {
@@ -647,6 +640,23 @@ function toggleUGWidget() {
     const icon   = document.getElementById('ugToggleIcon');
     widget.classList.toggle('minimized');
     icon.textContent = widget.classList.contains('minimized') ? '▶' : '▼';
+}
+
+function toggleUGWidgetInline() {
+    const body = document.getElementById('ugInlineBody');
+    const icon = document.getElementById('ugInlineToggle');
+    if (!body) return;
+    if (body.style.maxHeight && body.style.maxHeight !== '0px' && body.style.maxHeight !== '') {
+        body.style.maxHeight = '0px';
+        body.style.paddingTop = '0';
+        body.style.paddingBottom = '0';
+        if (icon) icon.style.transform = 'rotate(-90deg)';
+    } else {
+        body.style.maxHeight = '300px';
+        body.style.paddingTop = '10px';
+        body.style.paddingBottom = '12px';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+    }
 }
 
 function showNotification(msg,type='info'){
