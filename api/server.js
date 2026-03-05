@@ -32,8 +32,14 @@ function loadState() {
 function saveState() {
     try {
         fs.writeFileSync(STATE_FILE, JSON.stringify({
-            jackpot: gameState.jackpot,
-            winnersHistory: gameState.winnersHistory
+            jackpot:          gameState.jackpot,
+            winnersHistory:   gameState.winnersHistory,
+            players:          gameState.players,
+            boxes:            gameState.boxes,
+            extraBoxes:       gameState.extraBoxes,
+            pendingTransfers: gameState.pendingTransfers,
+            roundFund:        gameState.roundFund,
+            status:           gameState.status
         }, null, 2));
     } catch(e) { console.error('Error guardando estado:', e); }
 }
@@ -80,18 +86,18 @@ const defaultConfig = {
 };
 
 let gameState = {
-    status: 'OPEN',
-    players: [],
-    boxes: {},
-    extraBoxes: {},
-    jackpot: savedState ? (savedState.jackpot || 0) : 0,
-    roundFund: 0,
-    countdownEnd: null,
-    winner: null,
-    winningBox: null,
-    lastPrize: null,
-    pendingTransfers: [],
-    winnersHistory: savedState ? (savedState.winnersHistory || []) : [],
+    status:           savedState?.status === 'OPEN' ? 'OPEN' : 'OPEN',
+    players:          savedState?.players          || [],
+    boxes:            savedState?.boxes            || {},
+    extraBoxes:       savedState?.extraBoxes       || {},
+    jackpot:          savedState?.jackpot          || 0,
+    roundFund:        savedState?.roundFund        || 0,
+    countdownEnd:     null,
+    winner:           null,
+    winningBox:       null,
+    lastPrize:        null,
+    pendingTransfers: savedState?.pendingTransfers || [],
+    winnersHistory:   savedState?.winnersHistory   || [],
     config: savedConfig ? { ...defaultConfig, ...savedConfig } : { ...defaultConfig }
 };
 
@@ -192,6 +198,7 @@ app.post('/api/request-entry', (req, res) => {
     };
     gameState.players.push(player);
     gameState.pendingTransfers.push(transfer);
+    saveState();
     res.json({player, transfer});
 });
 
@@ -219,6 +226,7 @@ app.post('/api/confirm-box', (req, res) => {
     if (gameState.boxes[boxNumber]) return res.status(400).json({error: 'Caja ocupada'});
     gameState.boxes[boxNumber] = playerId;
     player.box = boxNumber;
+    saveState();
     checkAllSelected();
     res.json({success: true});
 });
@@ -246,6 +254,7 @@ app.post('/api/approve-transfer', (req, res) => {
         player.hasExtra = true;
         gameState.roundFund += gameState.config.extraPrice;
     }
+    saveState();
     res.json({success: true, player});
 });
 
@@ -259,6 +268,7 @@ app.post('/api/reject-transfer', (req, res) => {
         }
     }
     gameState.pendingTransfers = gameState.pendingTransfers.filter(t => t.id !== transferId);
+    saveState();
     res.json({success: true});
 });
 
@@ -293,7 +303,8 @@ app.post('/api/mark-transferred', (req, res) => {
 
 function resetRound(clearJackpot = false) {
     const jackpotToKeep = clearJackpot ? 0 : gameState.jackpot;
-    gameState.status = 'OPEN';
+    // Si estamos fuera de horario, dejar en CLOSED en lugar de OPEN
+    gameState.status = isWithinSchedule() ? 'OPEN' : 'CLOSED';
     gameState.players = [];
     gameState.boxes = {};
     gameState.extraBoxes = {};
@@ -306,6 +317,7 @@ function resetRound(clearJackpot = false) {
     gameState.jackpot = jackpotToKeep;
     if (timers.countdown) clearInterval(timers.countdown);
     if (timers.autoReset) clearTimeout(timers.autoReset);
+    saveState();
 }
 
 function checkAllSelected() {
@@ -406,6 +418,23 @@ app.get('/api/players-needed', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
+
+// ── Verificador de horario: cierra/abre el juego automáticamente ──────
+setInterval(() => {
+    const within = isWithinSchedule();
+    if (!within && gameState.status === 'OPEN') {
+        // Hora de cierre: cerrar el juego
+        console.log('Horario: cerrando juego automáticamente');
+        if (timers.countdown) clearInterval(timers.countdown);
+        if (timers.autoReset) clearTimeout(timers.autoReset);
+        gameState.status = 'CLOSED';
+        saveState();
+    } else if (within && gameState.status === 'CLOSED' && gameState.config.schedule.enabled) {
+        // Hora de apertura: abrir el juego
+        console.log('Horario: abriendo juego automáticamente');
+        resetRound(false);
+    }
+}, 60 * 1000); // cada 60 segundos
 
 // ══════════════════════════════════════════════════════════════
 // SISTEMA DE CHAT

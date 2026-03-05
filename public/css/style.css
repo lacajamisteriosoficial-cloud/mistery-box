@@ -571,6 +571,10 @@ body {
     .step-text{font-size:0.72em}
     .step-arrow{font-size:1em}
     .timer-display{font-size:1.3em;padding:7px 14px}
+    /* Chat y panel ganadores no tapan el header */
+    .chat-fab{bottom:16px;right:16px;top:auto;z-index:100}
+    .winners-panel{top:auto;bottom:70px;right:16px;left:16px;max-width:100%}
+    .winners-toggle{top:auto;bottom:16px;left:16px;right:auto}
 }
 @media(max-width:520px){
     .boxes-grid{grid-template-columns:repeat(3,1fr);gap:9px}
@@ -579,4 +583,8 @@ body {
     .step-arrow{display:none}
     .step{padding:0;width:100%}
     .header-inner{gap:10px}
+    .live-corner{position:relative;top:auto;right:auto;justify-content:center;padding:8px 0 0}
+    .site-header{padding-top:16px}
+    /* Panel ganadores full width en móvil */
+    .winners-panel{left:8px;right:8px;width:auto}
 }
